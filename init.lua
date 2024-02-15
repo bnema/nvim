@@ -320,15 +320,25 @@ vim.keymap.set('n', '<leader>bn', ':bn<CR>', { desc = 'Next buffer' })
 vim.keymap.set('n', '<leader>bb', ':bp<CR>', { desc = 'Previous buffer' })
 
 -- Harpoon
---
 local harpoon = require("harpoon")
 harpoon:setup({})
--- REQUIRED
-vim.keymap.set("n", "<leader>hh", function() harpoon:list():append() end, { desc = "Add current file to harpoon" })
-vim.keymap.set("n", "<leader>hc", function() harpoon:list():clear() end, { desc = "Clear harpoon list" })
-vim.keymap.set("n", "<leader>h&", function() harpoon:list():select(1) end, { desc = "Go to harpoon 1" })
-vim.keymap.set("n", "<leader>hé", function() harpoon:list():select(2) end, { desc = "Go to harpoon 2" })
-vim.keymap.set("n", "<leader>h\"", function() harpoon:list():select(3) end, { desc = "Go to harpoon 3" })
+
+vim.keymap.set("n", "<leader>hh", function()
+  harpoon:list():append()
+  print("File harpooned!")
+end, { desc = "Harpoon that file !" })
+vim.keymap.set("n", "<leader>hc", function() 
+  harpoon:list():clear()
+  print("Harpoon list cleared!")
+end, { desc = "Clear harpoon list" })
+
+-- Azerty keyboard layout
+vim.keymap.set("n", "<leader>h&", function() harpoon:list():select(1) end, { desc = "Go to harpooned file 1" })
+vim.keymap.set("n", "<leader>hé", function() harpoon:list():select(2) end, { desc = "Go to harpooned file 2" })
+vim.keymap.set("n", "<leader>h\"", function() harpoon:list():select(3) end, { desc = "Go to harpooned file 3" })
+vim.keymap.set("n", "<leader>h'", function() harpoon:list():select(4) end, { desc = "Go to harpooned file 4" })
+vim.keymap.set("n", "<leader>h(", function() harpoon:list():select(5) end, { desc = "Go to harpooned file 5" })
+
 -- Toggle previous & next buffers stored within Harpoon list
 vim.keymap.set("n", "<leader>hb", function() harpoon:list():prev() end, { desc = "Go to previous harpoon" })
 vim.keymap.set("n", "<leader>hn", function() harpoon:list():next() end, { desc = "Go to next harpoon" })
@@ -351,7 +361,7 @@ local function toggle_telescope(harpoon_files)
   }):find()
 end
 
-vim.keymap.set("n", "<C-e>", function() toggle_telescope(harpoon:list()) end,
+vim.keymap.set("n", "<leader>hw", function() toggle_telescope(harpoon:list()) end,
   { desc = "Open harpoon window" })
 
 -- [[ Highlight on yank ]]
