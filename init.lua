@@ -3,8 +3,8 @@
 --  NOTE: Must happen before plugins are required (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
--- disable F1 key to prevent accidental 
-vim.api.nvim_set_keymap('n', '<F1>', '<Nop>', {noremap = true, silent = true})
+-- disable F1 key to prevent accidental
+vim.api.nvim_set_keymap('n', '<F1>', '<Nop>', { noremap = true, silent = true })
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    https://github.com/folke/lazy.nvim
 --    `:help lazy.nvim.txt` for more info
@@ -85,7 +85,7 @@ require('lazy').setup({
   },
 
   -- Useful plugin to show you pending keybinds.
-  { 'folke/which-key.nvim', opts = {} },
+  { 'folke/which-key.nvim',  opts = {} },
   {
     -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -176,10 +176,12 @@ require('lazy').setup({
   -- },
   --
   --  Gruvbox
-  { 'morhetz/gruvbox',
+  {
+    'morhetz/gruvbox',
     priority = 1000,
     lazy = false,
-    config = function() vim.cmd.colorscheme("gruvbox") end },
+    config = function() vim.cmd.colorscheme("gruvbox") end
+  },
 
   {
     -- Set lualine as statusline
@@ -205,7 +207,7 @@ require('lazy').setup({
   },
 
   -- "gc" to comment visual regions/lines
-  { 'numToStr/Comment.nvim',  opts = {} },
+  { 'numToStr/Comment.nvim', opts = {} },
 
   -- Fuzzy Finder (files, lsp, etc)
   {
@@ -293,7 +295,7 @@ vim.o.completeopt = 'menuone,noselect'
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
 
-require("bufferline").setup{}
+require("bufferline").setup {}
 
 -- [[ Basic Keymaps ]]
 
@@ -311,40 +313,46 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnos
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
 
--- Harpoon 
+-- Leader B (buffer) keymaps
+vim.keymap.set('n', '<leader>bd', ':bd<CR>', { desc = 'Delete buffer' })
+vim.keymap.set('n', '<leader>bq', ':close', { desc = 'Close buffer' })
+vim.keymap.set('n', '<leader>bn', ':bn<CR>', { desc = 'Next buffer' })
+vim.keymap.set('n', '<leader>bb', ':bp<CR>', { desc = 'Previous buffer' })
+
+-- Harpoon
 --
 local harpoon = require("harpoon")
 harpoon:setup({})
 -- REQUIRED
 vim.keymap.set("n", "<leader>hh", function() harpoon:list():append() end, { desc = "Add current file to harpoon" })
-vim.keymap.set("n", "<leader>hc", function() harpoon:list():clear() end , { desc = "Clear harpoon list" })
-vim.keymap.set("n", "<leader>h&", function() harpoon:list():select(1) end , { desc = "Go to harpoon 1" })
-vim.keymap.set("n", "<leader>hé", function() harpoon:list():select(2) end , { desc = "Go to harpoon 2" })
-vim.keymap.set("n", "<leader>h\"", function() harpoon:list():select(3) end , { desc = "Go to harpoon 3" })
+vim.keymap.set("n", "<leader>hc", function() harpoon:list():clear() end, { desc = "Clear harpoon list" })
+vim.keymap.set("n", "<leader>h&", function() harpoon:list():select(1) end, { desc = "Go to harpoon 1" })
+vim.keymap.set("n", "<leader>hé", function() harpoon:list():select(2) end, { desc = "Go to harpoon 2" })
+vim.keymap.set("n", "<leader>h\"", function() harpoon:list():select(3) end, { desc = "Go to harpoon 3" })
 -- Toggle previous & next buffers stored within Harpoon list
-vim.keymap.set("n", "<leader>hb", function() harpoon:list():prev() end , { desc = "Go to previous harpoon" })
-vim.keymap.set("n", "<leader>hn", function() harpoon:list():next() end , { desc = "Go to next harpoon" })
+vim.keymap.set("n", "<leader>hb", function() harpoon:list():prev() end, { desc = "Go to previous harpoon" })
+vim.keymap.set("n", "<leader>hn", function() harpoon:list():next() end, { desc = "Go to next harpoon" })
 
 -- basic telescope configuration
 local conf = require("telescope.config").values
 local function toggle_telescope(harpoon_files)
-    local file_paths = {}
-    for _, item in ipairs(harpoon_files.items) do
-        table.insert(file_paths, item.value)
-    end
+  local file_paths = {}
+  for _, item in ipairs(harpoon_files.items) do
+    table.insert(file_paths, item.value)
+  end
 
-    require("telescope.pickers").new({}, {
-        prompt_title = "Harpoon",
-        finder = require("telescope.finders").new_table({
-            results = file_paths,
-        }),
-        previewer = conf.file_previewer({}),
-        sorter = conf.generic_sorter({}),
-    }):find()
+  require("telescope.pickers").new({}, {
+    prompt_title = "Harpoon",
+    finder = require("telescope.finders").new_table({
+      results = file_paths,
+    }),
+    previewer = conf.file_previewer({}),
+    sorter = conf.generic_sorter({}),
+  }):find()
 end
 
 vim.keymap.set("n", "<C-e>", function() toggle_telescope(harpoon:list()) end,
-    { desc = "Open harpoon window" })
+  { desc = "Open harpoon window" })
 
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
@@ -561,6 +569,7 @@ end
 -- document existing key chains
 require('which-key').register {
   ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
+  ['<leader>b'] = { name = '[B]uffers', _ = 'which_key_ignore' },
   ['<leader>d'] = { name = '[D]ocument', _ = 'which_key_ignore' },
   ['<leader>g'] = { name = '[G]it', _ = 'which_key_ignore' },
   ['<leader>h'] = { name = '[H]arpoon', _ = 'which_key_ignore' },
@@ -678,7 +687,7 @@ cmp.setup {
     end, { 'i', 's' }),
   },
   sources = {
-    { name = 'copilot'},
+    { name = 'copilot' },
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
     { name = 'path' },
