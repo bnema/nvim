@@ -311,7 +311,16 @@ vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = tr
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
+
+-- Trouble keymaps
+vim.keymap.set("n", "<leader>cx", function() require("trouble").toggle() end, { desc = "Toggle trouble" })
+vim.keymap.set("n", "<leader>cw", function() require("trouble").toggle("workspace_diagnostics") end,
+  { desc = "Toggle workspace diagnostics" })
+vim.keymap.set("n", "<leader>cd", function() require("trouble").toggle("document_diagnostics") end,
+  { desc = "Toggle document diagnostics" })
+vim.keymap.set("n", "<leader>cq", function() require("trouble").toggle("quickfix") end, { desc = "Toggle quickfix" })
+vim.keymap.set("n", "<leader>cl", function() require("trouble").toggle("loclist") end, { desc = "Toggle loclist" })
+vim.keymap.set("n", "gR", function() require("trouble").toggle("lsp_references") end, { desc = "Toggle lsp references" })
 
 -- Leader B (buffer) keymaps
 vim.keymap.set('n', '<leader>bd', ':bd<CR>', { desc = 'Delete buffer' })
@@ -327,7 +336,7 @@ vim.keymap.set("n", "<leader>hh", function()
   harpoon:list():append()
   print("File harpooned!")
 end, { desc = "Harpoon that file !" })
-vim.keymap.set("n", "<leader>hc", function() 
+vim.keymap.set("n", "<leader>hc", function()
   harpoon:list():clear()
   print("Harpoon list cleared!")
 end, { desc = "Clear harpoon list" })
@@ -673,7 +682,7 @@ cmp.setup {
     ['<C-b>'] = cmp.mapping.scroll_docs(-4),
     ['<C-f>'] = cmp.mapping.scroll_docs(4),
     ['<C-Space>'] = cmp.mapping.complete {},
-    ['<CR>'] = cmp.mapping.confirm {
+    ['<C-y>'] = cmp.mapping.confirm {
       behavior = cmp.ConfirmBehavior.Replace,
       select = true,
     },
