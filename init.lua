@@ -175,13 +175,26 @@ require('lazy').setup({
   --  end,
   -- },
   --
-  --  Gruvbox
-  {
-    'morhetz/gruvbox',
+    {
+    'Shatur/neovim-ayu',
     priority = 1000,
     lazy = false,
-    config = function() vim.cmd.colorscheme("gruvbox") end
+    config = function()
+      require('ayu').setup {
+        theme = 'mirage',
+        transparent = true,
+        italic = true,
+      }
+    vim.cmd.colorscheme("ayu") end
   },
+
+  --  Gruvbox
+  --{
+  --  'morhetz/gruvbox',
+   -- priority = 999,
+   -- lazy = false,
+  --  config = function() vim.cmd.colorscheme("gruvbox") end
+  --},
 
   {
     -- Set lualine as statusline
@@ -243,7 +256,8 @@ require('lazy').setup({
   --       These are some example plugins that I've included in the kickstart repository.
   --       Uncomment any of the lines below to enable them.
   -- require 'kickstart.plugins.autoformat',
-  -- require 'kickstart.plugins.debug',
+  require 'kickstart.plugins.debug',
+  require 'custom.plugins.conform',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    You can use this folder to prevent any conflicts with this init.lua if you're interested in keeping
