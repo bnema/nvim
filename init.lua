@@ -258,7 +258,6 @@ require('lazy').setup({
   -- require 'kickstart.plugins.autoformat',
   require 'kickstart.plugins.debug',
   require 'custom.plugins.conform',
-
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    You can use this folder to prevent any conflicts with this init.lua if you're interested in keeping
   --    up-to-date with whatever is in the kickstart repo.
@@ -267,6 +266,8 @@ require('lazy').setup({
   --    For additional information see: https://github.com/folke/lazy.nvim#-structuring-your-plugins
   { import = 'custom.plugins' },
 }, {})
+
+require('mini.starter').setup()
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
