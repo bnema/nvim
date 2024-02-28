@@ -161,21 +161,7 @@ require('lazy').setup({
     },
   },
 
-  -- {
-  -- Theme inspired by Atom
-  --'navarasu/onedark.nvim',
-  --priority = 1000,
-  --lazy = false,
-  -- config = function()
-  -- require('onedark').setup {
-  -- Set a style preset. 'dark' is default.
-  --  style = 'dark', -- dark, darker, cool, deep, warm, warmer, light
-  -- }
-  -- require('onedark').load()
-  --  end,
-  -- },
-  --
-    {
+  {
     'Shatur/neovim-ayu',
     priority = 1000,
     lazy = false,
@@ -185,16 +171,63 @@ require('lazy').setup({
         transparent = true,
         italic = true,
       }
-    vim.cmd.colorscheme("ayu") end
+    end,
+  },
+  {
+    'rebelot/kanagawa.nvim',
+    priority = 1000,
+    lazy = false,
+    config = function()
+    end,
+  },
+  {
+    'comfysage/evergarden',
+    opts = {
+      transparent_background = true,
+      contrast_dark = 'hard', -- 'hard'|'medium'|'soft'
+      overrides = {}
+    },
+    config = function()
+      require('evergarden').setup {
+        transparent_background = true,
+        contrast_dark = 'hard', -- 'hard'|'medium'|'soft'
+        overrides = {}
+      }
+    end,
+
   },
 
-  --  Gruvbox
-  --{
-  --  'morhetz/gruvbox',
-   -- priority = 999,
-   -- lazy = false,
-  --  config = function() vim.cmd.colorscheme("gruvbox") end
-  --},
+
+  {
+    "EdenEast/nightfox.nvim",
+    config = function()
+      require('nightfox').setup {
+        transparent_background = true
+      }
+      require("nightfox").load()
+      vim.cmd [[colorscheme carbonfox]]
+    end,
+  },
+  {
+    -- Add a statusline
+    'hoob3rt/lualine.nvim',
+    opts = {
+      options = {
+        icons_enabled = false,
+        theme = 'auto',
+        component_separators = '|',
+        section_separators = '',
+      },
+    },
+  },
+  {
+    -- Add indentation guides even on blank lines
+    'lukas-reineke/indent-blankline.nvim',
+    -- Enable `lukas-reineke/indent-blankline.nvim`
+    -- See `:help ibl`
+    main = 'ibl',
+    opts = {},
+  },
 
   {
     -- Set lualine as statusline
