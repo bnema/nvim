@@ -197,7 +197,6 @@ require('lazy').setup({
 
   },
 
-
   {
     "EdenEast/nightfox.nvim",
     config = function()
