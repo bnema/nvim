@@ -3,11 +3,11 @@
 --
 -- See the kickstart.nvim README for more information
 return {
-{'akinsho/bufferline.nvim', version = "*", dependencies = 'nvim-tree/nvim-web-devicons'},
-{
-    "ThePrimeagen/harpoon",
-    branch = "harpoon2",
-    dependencies = { "nvim-lua/plenary.nvim" }
-},
-    { 'echasnovski/mini.nvim', version = false },
+	{ 'akinsho/bufferline.nvim', version = "*",  dependencies = 'nvim-tree/nvim-web-devicons' },
+	{
+		"ThePrimeagen/harpoon",
+		branch = "harpoon2",
+		dependencies = { "nvim-lua/plenary.nvim" }
+	},
+	{ 'echasnovski/mini.nvim',   version = false },
 }
