@@ -10,4 +10,15 @@ return {
 		dependencies = { "nvim-lua/plenary.nvim" }
 	},
 	{ 'echasnovski/mini.nvim',   version = false },
+	{ "nvim-neotest/nvim-nio" },
+	{
+		'maxmx03/solarized.nvim',
+		lazy = false,
+		priority = 1000,
+		config = function()
+			vim.o.background = 'dark' -- or 'light'
+
+			vim.cmd.colorscheme 'solarized'
+		end,
+	},
 }
