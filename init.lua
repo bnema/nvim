@@ -55,7 +55,7 @@ require('lazy').setup({
       'folke/neodev.nvim',
     },
   },
-
+  { 'tzachar/cmp-ai',       dependencies = 'nvim-lua/plenary.nvim' },
   {
     -- Autocompletion
     'hrsh7th/nvim-cmp',
@@ -78,6 +78,7 @@ require('lazy').setup({
       -- Adds LSP completion capabilities
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-path',
+      'tzachar/cmp-ai',
 
       -- Adds a number of user-friendly snippets
       'rafamadriz/friendly-snippets',
@@ -85,7 +86,7 @@ require('lazy').setup({
   },
 
   -- Useful plugin to show you pending keybinds.
-  { 'folke/which-key.nvim',  opts = {} },
+  { 'folke/which-key.nvim', opts = {} },
   {
     -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -252,7 +253,7 @@ require('lazy').setup({
   },
 
   -- "gc" to comment visual regions/lines
-  { 'numToStr/Comment.nvim', opts = {} },
+  { 'numToStr/Comment.nvim',  opts = {} },
 
   -- Fuzzy Finder (files, lsp, etc)
   {
@@ -442,6 +443,26 @@ require('telescope').setup {
     },
   },
 }
+
+local cmp_ai = require('cmp_ai.config')
+
+cmp_ai:setup({
+  max_lines = 100,
+  provider = 'Ollama',
+  provider_options = {
+    model = 'codegemma:7b-code',
+  },
+  notify = true,
+  notify_callback = function(msg)
+    vim.notify(msg)
+  end,
+  run_on_every_keystroke = true,
+  ignored_file_types = {
+    -- default is not to ignore
+    -- uncomment to ignore in lua:
+    -- lua = true
+  },
+})
 
 -- Enable telescope fzf native, if installed
 pcall(require('telescope').load_extension, 'fzf')
@@ -752,6 +773,7 @@ cmp.setup {
     end, { 'i', 's' }),
   },
   sources = {
+    { name = 'cmp_ai' },
     { name = 'copilot' },
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
