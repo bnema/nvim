@@ -14,8 +14,5 @@ require('config.plugins')
 -- Global keymaps
 require('config.keymaps')
 
--- LSP configuration
-require('config.lsp')
-
 -- Load colorscheme
 vim.cmd('colorscheme despair')

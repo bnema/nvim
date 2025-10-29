@@ -33,148 +33,92 @@ now(function()
   add('echasnovski/mini.nvim')
 end)
 
--- Icons support
-add('nvim-tree/nvim-web-devicons')
-
--- LSP configuration and completion framework
-add('neovim/nvim-lspconfig')
-add('williamboman/mason.nvim')
-add('williamboman/mason-lspconfig.nvim')
-
--- AI-assisted coding
-add('zbirenbaum/copilot.lua')                 -- GitHub Copilot integration
-
--- Treesitter for advanced syntax highlighting and textobjects
-add({
-  source = 'nvim-treesitter/nvim-treesitter',
-  hooks = {
-    post_checkout = function()
-      vim.cmd('TSUpdate')                     -- Auto-update parsers after cloning
-    end,
-  },
-})
-add('nvim-treesitter/nvim-treesitter-textobjects')  -- Text object support via Tree-sitter
-
--- Git integration and diffing
-add('tpope/vim-fugitive')                     -- Git command wrapper (Gstatus, Gcommit, etc.)
-add('lewis6991/gitsigns.nvim')                -- Git signs in sign column
-
--- Fuzzy finder (works alongside mini.pick)
+-- Dependencies (needed by other plugins)
 add('nvim-lua/plenary.nvim')                  -- Lua utility library
-add('nvim-telescope/telescope.nvim')          -- Telescope fuzzy finder
-add('nvim-telescope/telescope-fzf-native.nvim')  -- FZF backend for Telescope
+add('nvim-tree/nvim-web-devicons')            -- File icons
 
--- Editor utilities
-add('tpope/vim-sleuth')                       -- Auto-detect indentation style
-add('tpope/vim-repeat')                       -- Repeat plugin commands with .
-add('stevearc/conform.nvim')                  -- Code formatter integration
+-- ============================================
+-- DEFER LOAD: LSP infrastructure (after startup, before files open)
+-- Must load before FileType events to allow mason-lspconfig to attach servers
+-- ============================================
+later(function()
+  -- LSP configuration and completion framework
+  add('neovim/nvim-lspconfig')
+  add('williamboman/mason.nvim')
+  add('williamboman/mason-lspconfig.nvim')
 
--- Mini.starter setup - customized with git-aware recent files
--- Loaded synchronously so it can display on VimEnter
+  -- Treesitter for advanced syntax highlighting and textobjects
+  add({
+    source = 'nvim-treesitter/nvim-treesitter',
+    hooks = {
+      post_checkout = function()
+        vim.cmd('TSUpdate')                     -- Auto-update parsers after cloning
+      end,
+    },
+  })
+  add('nvim-treesitter/nvim-treesitter-textobjects')  -- Text object support via Tree-sitter
+
+  -- Load LSP config after plugins are available
+  vim.schedule(function()
+    require('config.lsp')
+  end)
+end)
+
+-- ============================================
+-- LAZY LOAD: Copilot on insert mode
+-- ============================================
+vim.api.nvim_create_autocmd('InsertEnter', {
+  once = true,
+  callback = function()
+    later(function()
+      add('zbirenbaum/copilot.lua')
+      vim.schedule(function()
+        local ok, copilot = pcall(require, 'copilot')
+        if ok then
+          copilot.setup({
+            suggestion = { enabled = false },
+            panel = { enabled = false },
+          })
+        end
+      end)
+    end)
+  end
+})
+
+-- ============================================
+-- DEFER LOAD: Everything else after startup
+-- ============================================
+later(function()
+  -- Git integration and diffing
+  add('tpope/vim-fugitive')                     -- Git command wrapper (Gstatus, Gcommit, etc.)
+  add('lewis6991/gitsigns.nvim')                -- Git signs in sign column
+
+  -- Fuzzy finder (works alongside mini.pick)
+  add('nvim-telescope/telescope.nvim')          -- Telescope fuzzy finder
+  add('nvim-telescope/telescope-fzf-native.nvim')  -- FZF backend for Telescope
+
+  -- Editor utilities
+  add('tpope/vim-sleuth')                       -- Auto-detect indentation style
+  add('tpope/vim-repeat')                       -- Repeat plugin commands with .
+  add('stevearc/conform.nvim')                  -- Code formatter integration
+end)
+
+-- Helper to get current Neovim version
+local function get_neovim_version()
+  local v = vim.version()
+  return string.format('%d.%d.%d', v.major, v.minor, v.patch)
+end
+
+-- Mini.starter setup - OPTIMIZED to avoid blocking git commands
+-- Uses mini.extra.pickers.oldfiles() instead of custom git logic
 local function setup_mini_starter()
   local ok, starter = pcall(require, 'mini.starter')
   if not ok then
     return
   end
 
-  -- Helper: Format filepath as "filename from dirname" with optional shortening
-  local function format_filepath(filepath)
-    local basename = vim.fn.fnamemodify(filepath, ':t')
-    local dirname = vim.fn.fnamemodify(filepath, ':h')
-
-    if dirname == '.' or dirname == '' then
-      return basename
-    end
-
-    -- Shorten long directory paths
-    if #dirname > 30 then
-      dirname = '...' .. dirname:sub(-27)
-    end
-
-    return basename .. ' from "' .. dirname .. '"'
-  end
-
-  -- Helper: Get files changed on current git branch (uncommitted + committed)
-  local function get_git_branch_files(limit)
-    local files_set = {}  -- Use set to avoid duplicates
-    local result = {}
-
-    -- Get uncommitted changes (modified, staged, untracked)
-    local status_cmd = 'git status --porcelain --untracked-files=all 2>/dev/null'
-    local changed = vim.fn.systemlist(status_cmd)
-    for _, line in ipairs(changed) do
-      if #line > 3 then
-        local file = line:sub(4)  -- Remove git status prefix (e.g., "M ", "A ", "??")
-        if file ~= '' and not files_set[file] then
-          table.insert(result, file)
-          files_set[file] = true
-        end
-      end
-    end
-
-    -- Get files committed on current branch since diverging from main
-    local log_cmd = 'git log --name-only --pretty=format: main..HEAD 2>/dev/null | sort -u'
-    local committed = vim.fn.systemlist(log_cmd)
-    for _, file in ipairs(committed) do
-      if file ~= '' and not files_set[file] then
-        table.insert(result, file)
-        files_set[file] = true
-      end
-    end
-
-    -- Limit results
-    if limit and #result > limit then
-      return { unpack(result, 1, limit) }
-    end
-
-    return result
-  end
-
-  -- Custom section provider: Recently modified files from git repository
-  local function recent_modified_files(n)
-    return function()
-      local items = {}
-
-      -- Check if in a git repo
-      local is_git_repo = vim.fn.system('git rev-parse --is-inside-work-tree 2>/dev/null'):match('true')
-
-      if is_git_repo then
-        local files = get_git_branch_files(n or 10)
-
-        for _, file in ipairs(files) do
-          if file ~= '' then
-            table.insert(items, {
-              name = format_filepath(file),
-              action = 'e ' .. vim.fn.fnameescape(file),
-              section = 'Recently modified (git)',
-            })
-          end
-        end
-      else
-        -- Fallback: use find for non-git directories
-        local cwd = vim.fn.getcwd()
-        local find_cmd = string.format(
-          'find "%s" -type f -not -path "*/\\.*" -printf "%%T@ %%p\\n" 2>/dev/null | sort -rn | head -%d | cut -d" " -f2-',
-          cwd, n or 10
-        )
-        local files = vim.fn.systemlist(find_cmd)
-
-        for _, file in ipairs(files) do
-          if file ~= '' then
-            local relpath = vim.fn.fnamemodify(file, ':.')
-            table.insert(items, {
-              name = format_filepath(relpath),
-              action = 'e ' .. vim.fn.fnameescape(file),
-              section = 'Recently modified',
-            })
-          end
-        end
-      end
-
-      return items
-    end
-  end
-
+  -- NOTE: Using mini.extra.pickers.oldfiles() is much faster than custom git commands
+  -- because it's optimized and doesn't block UI startup
   starter.setup({
     autoopen = true,
     evaluate_single = false,
@@ -182,21 +126,29 @@ local function setup_mini_starter()
       -- Custom builtin actions
       {
         { name = "New buffer", action = "enew", section = "Builtin actions" },
-        { name = "File picker (.)", action = "lua MiniPick.builtin.files()", section = "Builtin actions" },
-        { name = "Explorer (.)", action = "lua MiniFiles.open()", section = "Builtin actions" },
+        { name = "File picker", action = "lua MiniPick.builtin.files()", section = "Builtin actions" },
+        { name = "Search in files", action = "lua MiniPick.builtin.grep_live()", section = "Builtin actions" },
+        { name = "Explorer", action = "lua MiniFiles.open()", section = "Builtin actions" },
         { name = "Quit", action = "qall", section = "Builtin actions" },
       },
-      recent_modified_files(10),  -- Recently modified files in current branch
-      starter.sections.recent_files(5, false, function(path)
+      -- Use mini.extra's oldfiles picker (fast, non-blocking)
+      starter.sections.recent_files(10, false, function(path)
         local dirname = vim.fn.fnamemodify(path, ':h')
         if dirname == '.' or dirname == '' then
           return ''
         end
+        -- Replace home directory with ~ for cleaner display
+        dirname = dirname:gsub(vim.env.HOME, '~')
+
         if #dirname > 30 then
-          dirname = '...' .. dirname:sub(-27)
+          -- Show only the last 3 directory components with ellipsis prefix
+          local parts = vim.split(dirname, '/')
+          if #parts > 3 then
+            return ' from ".../' .. table.concat({parts[#parts-2], parts[#parts-1], parts[#parts]}, '/') .. '"'
+          end
         end
         return ' from "' .. dirname .. '"'
-      end),  -- Recent files with directory path
+      end),
     },
     content_hooks = {
       starter.gen_hook.adding_bullet(),
@@ -225,7 +177,7 @@ local function setup_mini_starter()
         return content
       end,
     },
-    header = 'Welcome to Neovim 11.0',
+    header = 'Welcome to Neovim ' .. get_neovim_version(),
     footer = '',
   })
 end
