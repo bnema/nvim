@@ -36,7 +36,7 @@ local function on_attach(client, bufnr)
 
   -- Enable inline completion (Copilot and other inline completion providers)
   if client.server_capabilities.inlineCompletionProvider then
-    lsp.inlinecompletion.enable(true, client.id, bufnr)
+    vim.lsp.inline_completion.enable(true, { bufnr = bufnr })
   end
 end
 
