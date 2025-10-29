@@ -245,12 +245,6 @@ later(function()
       { mode = 'n', keys = '<Leader>' },
       { mode = 'x', keys = '<Leader>' },
 
-      -- Leader + g (git)
-      { mode = 'n', keys = '<Leader>g' },
-
-      -- Leader + s (search)
-      { mode = 'n', keys = '<Leader>s' },
-
       -- Built-in completion
       { mode = 'i', keys = '<C-x>' },
 
@@ -283,12 +277,13 @@ later(function()
     },
     clues = {
       -- Leader key groups
-      { mode = 'n', keys = '<Leader>b', desc = '+Buffer' },
-      { mode = 'n', keys = '<Leader>f', desc = '+Find' },
-      { mode = 'n', keys = '<Leader>g', desc = '+Git' },
-      { mode = 'n', keys = '<Leader>l', desc = '+LSP' },
-      { mode = 'n', keys = '<Leader>q', desc = '+Quit' },
-      { mode = 'n', keys = '<Leader>s', desc = '+Search' },
+      { mode = 'n', keys = '<Leader>b', desc = 'Buffer' },
+      { mode = 'n', keys = '<Leader>f', desc = 'Find' },
+      { mode = 'n', keys = '<Leader>g', desc = 'Git' },
+      { mode = 'n', keys = '<Leader>l', desc = 'LSP' },
+      { mode = 'n', keys = '<Leader>q', desc = 'Quit' },
+      { mode = 'n', keys = '<Leader>s', desc = 'Search' },
+      { mode = 'n', keys = '<Leader>t', desc = 'Tabs' },
       { mode = 'n', keys = '<Leader>w', desc = 'Save' },
 
       -- Built-in clues
