@@ -55,7 +55,9 @@ map('v', '<A-k>', ':m .-2<CR>gv=gv', opts)        -- Move lines up (visual)
 -- File operations - Save, quit, and combined
 map('n', '<leader>w', ':write<CR>', { noremap = true, silent = true, desc = 'Save file' })
 map('n', '<leader>q', ':quit<CR>', { noremap = true, silent = true, desc = 'Quit' })
-map('n', '<leader>qq', ':quit!<CR>', { noremap = true, silent = true, desc = 'Quit! (force)' })
+map('n', '<leader>qa', ':quitall!<CR>', { noremap = true, silent = true, desc = 'Quit all!' })
+map('n', '<leader>qq', ':quit!<CR>', { noremap = true, silent = true, desc = 'Quit!' })
+map('n', '<leader>qb', ':bdelete!<CR>', { noremap = true, silent = true, desc = 'Close buffer!' })
 map('n', '<leader>qw', ':wq<CR>', { noremap = true, silent = true, desc = 'Write & quit' })
 
 -- Split window management - Create and close splits
