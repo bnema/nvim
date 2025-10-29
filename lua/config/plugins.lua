@@ -169,5 +169,5 @@ setup_mini_starter()
 
 -- Schedule remaining plugin configuration after mini.nvim loads
 vim.schedule(function()
-  require('config.plugins.mini')  -- Load all mini.nvim module configurations
+  require('config.plugins.mini')   -- Load all mini.nvim module configurations
 end)

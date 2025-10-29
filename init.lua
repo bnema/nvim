@@ -11,6 +11,9 @@ require('config.settings')
 -- Bootstrap mini.deps and plugins
 require('config.plugins')
 
+-- Load native Neovim 0.12+ packages (vim.pack.add)
+require('config.native-packages')
+
 -- Global keymaps
 require('config.keymaps')
 
