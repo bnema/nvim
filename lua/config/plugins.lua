@@ -40,13 +40,6 @@ add('nvim-tree/nvim-web-devicons')
 add('neovim/nvim-lspconfig')
 add('williamboman/mason.nvim')
 add('williamboman/mason-lspconfig.nvim')
-add('hrsh7th/nvim-cmp')
-add('hrsh7th/cmp-nvim-lsp')
-add('hrsh7th/cmp-buffer')
-add('hrsh7th/cmp-path')
-add('hrsh7th/cmp-cmdline')                    -- Cmdline completion
-add('saadparwaiz1/cmp_luasnip')               -- LuaSnip completion source
-add('L3MON4D3/LuaSnip')                       -- Snippet engine
 
 -- AI-assisted coding
 add('zbirenbaum/copilot.lua')                 -- GitHub Copilot integration

@@ -8,75 +8,10 @@ vim.schedule(function()
   -- Build LSP capabilities from Neovim
   local capabilities = lsp.protocol.make_client_capabilities()
 
-  -- Extend capabilities with completion plugin support if available
-  local ok_cmp, cmp_lsp = pcall(require, 'cmp_nvim_lsp')
-  if ok_cmp then
-    capabilities = vim.tbl_deep_extend('force', capabilities, cmp_lsp.default_capabilities())
-  end
-
-  -- Setup nvim-cmp completion framework if available
-  local ok, cmp = pcall(require, 'cmp')
-  if ok then
-    cmp.setup({
-      snippet = {
-        expand = function(args)
-          -- Expand snippet using LuaSnip engine
-          local ok_luasnip, luasnip = pcall(require, 'luasnip')
-          if ok_luasnip then
-            luasnip.lsp_expand(args.body)
-          end
-        end,
-      },
-      window = {
-        completion = cmp.config.window.bordered(),     -- Bordered completion menu
-        documentation = cmp.config.window.bordered(),  -- Bordered documentation
-      },
-      mapping = cmp.mapping.preset.insert({
-        ['<C-b>'] = cmp.mapping.scroll_docs(-4),        -- Scroll docs up
-        ['<C-f>'] = cmp.mapping.scroll_docs(4),         -- Scroll docs down
-        ['<C-Space>'] = cmp.mapping.complete(),         -- Trigger completion
-        ['<C-e>'] = cmp.mapping.abort(),                -- Abort completion
-        ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Confirm selection
-        ['<Tab>'] = cmp.mapping(function(fallback)      -- Next item or fallback
-          if cmp.visible() then
-            cmp.select_next_item()
-          else
-            fallback()
-          end
-        end, { 'i', 's' }),
-        ['<S-Tab>'] = cmp.mapping(function(fallback)    -- Previous item or fallback
-          if cmp.visible() then
-            cmp.select_prev_item()
-          else
-            fallback()
-          end
-        end, { 'i', 's' }),
-      }),
-      sources = cmp.config.sources({
-        { name = 'nvim_lsp' },  -- LSP completions
-        { name = 'luasnip' },   -- Snippet completions
-      }, {
-        { name = 'buffer' },    -- Buffer word completions
-      }),
-    })
-
-    -- Command-line completion for '/' (search)
-    cmp.setup.cmdline('/', {
-      mapping = cmp.mapping.preset.cmdline(),
-      sources = {
-        { name = 'buffer' },  -- Search within current buffer
-      },
-    })
-
-    -- Command-line completion for ':' (commands)
-    cmp.setup.cmdline(':', {
-      mapping = cmp.mapping.preset.cmdline(),
-      sources = cmp.config.sources({
-        { name = 'path' },     -- File path completion
-      }, {
-        { name = 'cmdline' },  -- Ex command completion
-      }),
-    })
+  -- Extend capabilities with mini.completion support if available
+  local ok_mini, _ = pcall(require, 'mini.completion')
+  if ok_mini then
+    capabilities = vim.tbl_deep_extend('force', capabilities, MiniCompletion.get_lsp_capabilities())
   end
 
   -- LSP attach callback - called when LSP client attaches to buffer
