@@ -55,10 +55,10 @@ local colors = {
 -- Editor UI
 hi('Normal', { fg = colors.seasalt, bg = colors.void_black })
 hi('NormalFloat', { fg = colors.seasalt, bg = colors.deep_charcoal })
-hi('FloatBorder', { fg = colors.shadow_gray, bg = colors.deep_charcoal })
+hi('FloatBorder', { fg = colors.shadow_gray, bg = colors.shadow_gray })
 hi('FloatTitle', { fg = colors.pure_white, bg = colors.deep_charcoal, bold = true })
 
-hi('Cursor', { fg = colors.void_black, bg = colors.slate_teal })
+hi('Cursor', { fg = colors.void_black, bg = colors.storm_gray })
 hi('CursorLine', { bg = colors.deep_charcoal })
 hi('CursorColumn', { bg = colors.deep_charcoal })
 hi('ColorColumn', { bg = colors.shadow_gray })
@@ -296,7 +296,7 @@ hi('MiniPickPreviewLine', { bg = colors.deep_charcoal })
 hi('MiniPickPreviewRegion', { bg = colors.dark_teal })
 hi('MiniPickPrompt', { fg = colors.bright_teal, bg = colors.deep_charcoal, bold = true })
 
-hi('MiniStarterCurrent', { underline = true })
+hi('MiniStarterCurrent', { fg = colors.bright_teal, underline = true })
 hi('MiniStarterFooter', { fg = colors.dim_gray, italic = true })
 hi('MiniStarterHeader', { fg = colors.bright_teal })
 hi('MiniStarterInactive', { fg = colors.dim_gray })
