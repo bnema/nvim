@@ -16,15 +16,26 @@ map('n', '<C-Down>', ':resize -2<CR>', opts)         -- Decrease height
 map('n', '<C-Left>', ':vertical resize -2<CR>', opts) -- Decrease width
 map('n', '<C-Right>', ':vertical resize +2<CR>', opts) -- Increase width
 
--- Buffer navigation - Shift + hl for quick buffer switching
-map('n', '<S-h>', ':bprevious<CR>', opts)  -- Previous buffer
-map('n', '<S-l>', ':bnext<CR>', opts)      -- Next buffer
+-- Tab page navigation - Shift + hl for quick tab switching
+map('n', '<S-h>', ':tabprevious<CR>', opts)  -- Previous tab page
+map('n', '<S-l>', ':tabnext<CR>', opts)      -- Next tab page
 
 -- Buffer management (via mini.bufremove)
+map('n', '<leader>bN', ':enew<CR>', { noremap = true, silent = true, desc = 'New buffer' })
 map('n', '<leader>bd', function() require('mini.bufremove').delete(0, false) end, { noremap = true, silent = true, desc = 'Delete buffer' })
 map('n', '<leader>bD', function() require('mini.bufremove').delete(0, true) end, { noremap = true, silent = true, desc = 'Delete buffer (force)' })
 map('n', '<leader>bw', function() require('mini.bufremove').wipeout(0, false) end, { noremap = true, silent = true, desc = 'Wipeout buffer' })
 map('n', '<leader>bW', function() require('mini.bufremove').wipeout(0, true) end, { noremap = true, silent = true, desc = 'Wipeout buffer (force)' })
+
+-- Buffer navigation via leader+b menu
+map('n', '<leader>bn', ':bnext<CR>', { noremap = true, silent = true, desc = 'Next buffer' })
+map('n', '<leader>bb', ':bprevious<CR>', { noremap = true, silent = true, desc = 'Back/previous buffer' })
+
+-- Quick buffer switching by number (1-9, 0 for buffer 10)
+for i = 1, 9 do
+  map('n', '<leader>b' .. i, ':buffer ' .. i .. '<CR>', { noremap = true, silent = true, desc = 'Buffer ' .. i })
+end
+map('n', '<leader>b0', ':buffer 10<CR>', { noremap = true, silent = true, desc = 'Buffer 10' })
 
 -- Clear search highlight on Escape
 map('n', '<Esc>', ':nohlsearch<CR>', opts)
@@ -59,18 +70,9 @@ map('n', '<leader>th', ':tabprevious<CR>', { noremap = true, silent = true, desc
 map('n', '<leader>tl', ':tabnext<CR>', { noremap = true, silent = true, desc = 'Next tab' })
 map('n', '<leader>to', ':tabonly<CR>', { noremap = true, silent = true, desc = 'Only this tab' })
 
--- Quick tab navigation - Auto-create new tab when at the last tab
-map('n', '<Tab>', function()
-  local tab_count = vim.fn.tabpagenr('$')
-  local current_tab = vim.fn.tabpagenr()
-  if current_tab == tab_count then
-    vim.cmd('tabnew')  -- Create new tab if at the end
-  else
-    vim.cmd('tabnext')  -- Go to next tab
-  end
-end, { noremap = true, silent = true, desc = 'Next tab or create' })
-
-map('n', '<S-Tab>', ':tabprevious<CR>', { noremap = true, silent = true, desc = 'Previous tab' })
+-- Buffer navigation - Tab/Shift-Tab for ergonomic buffer switching
+map('n', '<Tab>', ':bnext<CR>', { noremap = true, silent = true, desc = 'Next buffer' })
+map('n', '<S-Tab>', ':bprevious<CR>', { noremap = true, silent = true, desc = 'Previous buffer' })
 
 -- ============================================================================
 -- PLUGIN & LSP KEYMAPS
@@ -90,6 +92,10 @@ map('n', '<S-Tab>', ':tabprevious<CR>', { noremap = true, silent = true, desc = 
 --   <leader>fo         - Open recent files (mini.extra)
 --   <leader>fH         - Command history search (mini.extra)
 --   <leader>fd         - Show diagnostics (mini.extra)
+
+-- Search (configured in config/plugins/mini.lua):
+--   <leader>ss         - Search in files (grep live, interactive)
+--   <leader>sf         - Search pattern in files (grep, upfront pattern)
 
 -- LSP Navigation & Actions (configured in config/lsp.lua):
 --   gd                 - Go to symbol definition
