@@ -89,15 +89,16 @@ later(function()
   require('mini.comment').setup()
 
   -- mini.jump - Enhanced character search (f/F/t/T)
-  require('mini.jump').setup({
-    mappings = {
-      forward = 'f',
-      backward = 'F',
-      forward_till = 't',
-      backward_till = 'T',
-      repeat_jump = ';',
-    },
-  })
+  -- Disabled: Using flash.nvim instead for character search
+  -- require('mini.jump').setup({
+  --   mappings = {
+  --     forward = 'f',
+  --     backward = 'F',
+  --     forward_till = 't',
+  --     backward_till = 'T',
+  --     repeat_jump = ';',
+  --   },
+  -- })
 
   -- mini.align - Text alignment
   require('mini.align').setup()
