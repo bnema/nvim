@@ -61,29 +61,10 @@ later(function()
   -- Load LSP config after plugins are available
   vim.schedule(function()
     require('config.lsp')
+    -- Load Copilot native inline completion (requires Neovim 0.12+)
+    require('config.plugins.copilot')
   end)
 end)
-
--- ============================================
--- LAZY LOAD: Copilot on insert mode
--- ============================================
-vim.api.nvim_create_autocmd('InsertEnter', {
-  once = true,
-  callback = function()
-    later(function()
-      add('zbirenbaum/copilot.lua')
-      vim.schedule(function()
-        local ok, copilot = pcall(require, 'copilot')
-        if ok then
-          copilot.setup({
-            suggestion = { enabled = false },
-            panel = { enabled = false },
-          })
-        end
-      end)
-    end)
-  end
-})
 
 -- ============================================
 -- DEFER LOAD: Everything else after startup

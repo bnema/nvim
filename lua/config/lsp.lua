@@ -100,24 +100,6 @@ if ok_mason then
   end
 end
 
--- Setup GitHub Copilot integration
-local ok_copilot, copilot = pcall(require, 'copilot')
-if ok_copilot then
-  copilot.setup({
-    suggestion = {
-      enabled = false,  -- Use native inline completion instead
-    },
-    panel = {
-      enabled = false,  -- Disable Copilot panel
-    },
-  })
-
-  -- Copilot navigation keymaps for inline completion
-  local copilot_opts = { noremap = true, silent = true }
-  vim.keymap.set('i', '<M-]>', function() lsp.inlinecompletion.select() end, vim.tbl_extend('force', copilot_opts, { desc = 'Next suggestion' }))
-  vim.keymap.set('i', '<M-[>', function() lsp.inlinecompletion.prev() end, vim.tbl_extend('force', copilot_opts, { desc = 'Previous suggestion' }))
-end
-
 -- Configure LSP diagnostics display
 vim.diagnostic.config({
   virtual_text = {

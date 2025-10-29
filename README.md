@@ -6,7 +6,7 @@ A minimal Neovim configuration built on [mini.nvim](https://github.com/echasnovs
 
 ## Requirements
 
-- **Neovim:** 11.0 or later
+- **Neovim:** 0.12 or later (native inline completion support)
 - **Nerd Font:** Any [Nerd Font](https://www.nerdfonts.com/) (for icons and symbols)
 - **Git:** Required for plugin management
 
@@ -57,6 +57,13 @@ nvim
 | `<leader>fg` | Live grep |
 | `<leader>w` / `<leader>q` | Save / Quit |
 
+### Copilot (Insert Mode)
+| Key | Action |
+|-----|--------|
+| `<Tab>` | Accept suggestion |
+| `<M-]>` | Next suggestion |
+| `<M-[>` | Previous suggestion |
+
 Use `:help keymaps.lua` for the complete list or press `<leader>` to see hints with mini.clue.
 
 ## Structure
@@ -70,7 +77,8 @@ Use `:help keymaps.lua` for the complete list or press `<leader>` to see hints w
 │   ├── keymaps.lua             # Global keybindings
 │   ├── lsp.lua                 # LSP setup
 │   └── plugins/
-│       └── mini.lua            # mini.nvim modules config
+│       ├── mini.lua            # mini.nvim modules config
+│       └── copilot.lua         # GitHub Copilot native inline completion
 └── colors/
     └── despair.lua             # Custom dark colorscheme
 ```
@@ -84,6 +92,7 @@ Edit files in `lua/config/` to customize behavior:
 - **lsp.lua** - Language servers, diagnostics, completion
 - **keymaps.lua** - Global keybindings
 - **plugins/mini.lua** - mini.nvim module configuration
+- **plugins/copilot.lua** - GitHub Copilot native inline completion settings
 
 ## Notes
 
