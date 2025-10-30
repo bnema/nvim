@@ -64,6 +64,40 @@ vim.api.nvim_create_autocmd('VimEnter', {
           width_nofocus = 15,
         },
       })
+
+      -- Setup mini.files keymaps
+      local minifiles_toggle = function()
+        if not MiniFiles.close() then
+          MiniFiles.open(vim.api.nvim_buf_get_name(0))
+        end
+      end
+      vim.keymap.set('n', '<leader>e', minifiles_toggle, { noremap = true, silent = true, desc = 'Explorer' })
+
+      -- Toggle dotfiles visibility in mini.files
+      local show_dotfiles = true
+
+      local filter_show = function(fs_entry)
+        return true
+      end
+
+      local filter_hide = function(fs_entry)
+        return not vim.startswith(fs_entry.name, '.')
+      end
+
+      local toggle_dotfiles = function()
+        show_dotfiles = not show_dotfiles
+        local new_filter = show_dotfiles and filter_show or filter_hide
+        MiniFiles.refresh({ content = { filter = new_filter } })
+      end
+
+      vim.api.nvim_create_autocmd('User', {
+        pattern = 'MiniFilesBufferCreate',
+        callback = function(args)
+          local buf_id = args.data.buf_id
+          vim.keymap.set('n', 'g.', toggle_dotfiles, { buffer = buf_id, desc = 'Toggle dotfiles' })
+          vim.keymap.set('n', '<C-h>', toggle_dotfiles, { buffer = buf_id, desc = 'Toggle dotfiles' })
+        end,
+      })
     end)
   end
 })
@@ -154,15 +188,6 @@ later(function()
   -- mini.bufremove - Buffer management (delete/wipeout buffers)
   require('mini.bufremove').setup()
 end)
-
--- Setup keymaps for mini.files (works with deferred loading)
-local minifiles_toggle = function()
-  if not MiniFiles.close() then
-    MiniFiles.open(vim.api.nvim_buf_get_name(0))
-  end
-end
-
-vim.keymap.set('n', '<leader>e', minifiles_toggle, { noremap = true, silent = true, desc = 'Explorer' })
 
 -- Setup keymaps for mini.pick
 vim.keymap.set('n', '<leader>ff', function() MiniPick.builtin.files() end, { noremap = true, silent = true, desc = 'Find files' })

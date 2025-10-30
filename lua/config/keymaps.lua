@@ -107,6 +107,7 @@ end, { noremap = true, silent = true, desc = 'Yank diagnostic line' })
 
 -- File Explorer & Fuzzy Finding (configured in config/plugins/mini.lua):
 --   <leader>e          - Toggle mini.files sidebar explorer
+--     g. / <C-h>       - Toggle dotfiles visibility (while in mini.files)
 --   <leader>ff         - Find files (mini.pick)
 --   <leader>fg         - Live grep search (mini.pick)
 --   <leader>fb         - Find in open buffers (mini.pick)
