@@ -286,6 +286,7 @@ later(function()
       { mode = 'n', keys = '<Leader>s', desc = 'Search' },
       { mode = 'n', keys = '<Leader>t', desc = 'Tabs' },
       { mode = 'n', keys = '<Leader>w', desc = 'Save' },
+      { mode = 'n', keys = '<Leader>y', desc = 'Yank' },
 
       -- Built-in clues
       miniclue.gen_clues.builtin_completion(),

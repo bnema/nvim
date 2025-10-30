@@ -76,6 +76,29 @@ map('n', '<leader>to', ':tabonly<CR>', { noremap = true, silent = true, desc = '
 map('n', '<Tab>', ':bnext<CR>', { noremap = true, silent = true, desc = 'Next buffer' })
 map('n', '<S-Tab>', ':bprevious<CR>', { noremap = true, silent = true, desc = 'Previous buffer' })
 
+-- Yank operations - Copy special content to clipboard
+map('n', '<leader>yl', function()
+  local line = vim.fn.getline('.')
+  vim.fn.setreg('+', line)
+  vim.notify('Yanked line to clipboard', vim.log.levels.INFO)
+end, { noremap = true, silent = true, desc = 'Yank line' })
+
+map('n', '<leader>yd', function()
+  local diagnostics = vim.diagnostic.get(0, { lnum = vim.fn.line('.') - 1 })
+  if #diagnostics == 0 then
+    vim.notify('No diagnostics on current line', vim.log.levels.WARN)
+    return
+  end
+  -- Concatenate all diagnostic messages for the line
+  local messages = {}
+  for _, diag in ipairs(diagnostics) do
+    table.insert(messages, diag.message)
+  end
+  local text = table.concat(messages, '\n')
+  vim.fn.setreg('+', text)
+  vim.notify('Yanked diagnostic(s) to clipboard', vim.log.levels.INFO)
+end, { noremap = true, silent = true, desc = 'Yank diagnostic line' })
+
 -- ============================================================================
 -- PLUGIN & LSP KEYMAPS
 -- ============================================================================
