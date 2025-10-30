@@ -11,6 +11,9 @@ require('config.settings')
 -- Auto-reload files changed externally (for AI tools, formatters, etc.)
 require('config.autoread')
 
+-- Auto-formatting on save
+require('config.format')
+
 -- Bootstrap mini.deps and plugins
 require('config.plugins')
 
