@@ -8,6 +8,9 @@ vim.g.loaded_netrwPlugin = 1
 -- First, setup core settings
 require('config.settings')
 
+-- Auto-reload files changed externally (for AI tools, formatters, etc.)
+require('config.autoread')
+
 -- Bootstrap mini.deps and plugins
 require('config.plugins')
 
