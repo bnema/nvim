@@ -45,62 +45,11 @@ vim.api.nvim_create_autocmd('InsertEnter', {
 })
 
 -- ============================================
--- STAGE 3: File explorer (on keymap or VimEnter)
+-- STAGE 3: File explorer
 -- ============================================
-vim.api.nvim_create_autocmd('VimEnter', {
-  callback = function()
-    later(function()
-      -- mini.files - File explorer
-      require('mini.files').setup({
-        mappings = {
-          close = '<ESC>',
-        },
-        options = {
-          use_as_default_explorer = true,
-        },
-        windows = {
-          preview = true,
-          width_focus = 50,
-          width_nofocus = 15,
-        },
-      })
-
-      -- Setup mini.files keymaps
-      local minifiles_toggle = function()
-        if not MiniFiles.close() then
-          MiniFiles.open(vim.api.nvim_buf_get_name(0))
-        end
-      end
-      vim.keymap.set('n', '<leader>e', minifiles_toggle, { noremap = true, silent = true, desc = 'Explorer' })
-
-      -- Toggle dotfiles visibility in mini.files
-      local show_dotfiles = true
-
-      local filter_show = function(fs_entry)
-        return true
-      end
-
-      local filter_hide = function(fs_entry)
-        return not vim.startswith(fs_entry.name, '.')
-      end
-
-      local toggle_dotfiles = function()
-        show_dotfiles = not show_dotfiles
-        local new_filter = show_dotfiles and filter_show or filter_hide
-        MiniFiles.refresh({ content = { filter = new_filter } })
-      end
-
-      vim.api.nvim_create_autocmd('User', {
-        pattern = 'MiniFilesBufferCreate',
-        callback = function(args)
-          local buf_id = args.data.buf_id
-          vim.keymap.set('n', 'g.', toggle_dotfiles, { buffer = buf_id, desc = 'Toggle dotfiles' })
-          vim.keymap.set('n', '<C-h>', toggle_dotfiles, { buffer = buf_id, desc = 'Toggle dotfiles' })
-        end,
-      })
-    end)
-  end
-})
+-- Note: File explorer is handled by yazi.nvim (configured in native-packages.lua)
+-- Directories opened with `nvim .` will automatically open in yazi
+-- Manual trigger: <leader>e
 
 -- ============================================
 -- STAGE 4: Deferred modules (after startup)

@@ -60,6 +60,11 @@ map('n', '<leader>qq', ':quit!<CR>', { noremap = true, silent = true, desc = 'Qu
 map('n', '<leader>qb', ':bdelete!<CR>', { noremap = true, silent = true, desc = 'Close buffer!' })
 map('n', '<leader>qw', ':wq<CR>', { noremap = true, silent = true, desc = 'Write & quit' })
 
+-- File Explorer - Yazi terminal file manager
+map('n', '<leader>e', function()
+  require("yazi").yazi()
+end, { noremap = true, silent = true, desc = 'Explorer (yazi)' })
+
 -- Split window management - Create and close splits
 map('n', '<leader>|', ':vsplit<CR>', { noremap = true, silent = true, desc = 'Split vertically' })
 map('n', '<leader>-', ':split<CR>', { noremap = true, silent = true, desc = 'Split horizontally' })

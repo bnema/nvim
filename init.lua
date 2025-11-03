@@ -1,9 +1,7 @@
 -- Neovim 11.0 Configuration from Scratch
 -- Minimal, fast, modern setup using mini.nvim and native LSP
 
--- Disable netrw (use mini.files instead)
-vim.g.loaded_netrw = 1
-vim.g.loaded_netrwPlugin = 1
+-- netrw is enabled by default for directory browsing
 
 -- First, setup core settings
 require('config.settings')
