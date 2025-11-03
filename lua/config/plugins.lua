@@ -90,6 +90,18 @@ local function get_neovim_version()
   return string.format('%d.%d.%d', v.major, v.minor, v.patch)
 end
 
+-- Helper function to ensure MiniFiles is loaded before opening
+local function open_mini_files()
+  if not MiniFiles then
+    require('mini.files').setup({
+      mappings = { close = '<ESC>' },
+      options = { use_as_default_explorer = true },
+      windows = { preview = true, width_focus = 50, width_nofocus = 15 },
+    })
+  end
+  MiniFiles.open()
+end
+
 -- Mini.starter setup - OPTIMIZED to avoid blocking git commands
 -- Uses mini.extra.pickers.oldfiles() instead of custom git logic
 local function setup_mini_starter()
@@ -109,7 +121,7 @@ local function setup_mini_starter()
         { name = "New buffer", action = "enew", section = "Builtin actions" },
         { name = "File picker", action = "lua MiniPick.builtin.files()", section = "Builtin actions" },
         { name = "Search in files", action = "lua MiniPick.builtin.grep_live()", section = "Builtin actions" },
-        { name = "Explorer", action = "lua MiniFiles.open()", section = "Builtin actions" },
+        { name = "Explorer", action = open_mini_files, section = "Builtin actions" },
         { name = "Quit", action = "qall", section = "Builtin actions" },
       },
       -- Use mini.extra's oldfiles picker (fast, non-blocking)
