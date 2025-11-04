@@ -129,21 +129,21 @@ end, { noremap = true, silent = true, desc = 'Yank diagnostic line' })
 --   <leader>sf         - Search pattern in files (grep, upfront pattern)
 
 -- LSP Navigation & Actions:
---   Core navigation with pickers (configured in config/lsp.lua):
---     gd               - Go to definition (picker)
---     gD               - Go to declaration (picker)
---     gi               - Go to implementation (picker)
---     gr               - Find references (picker)
---     gy               - Go to type definition (picker)
+--   Core navigation (configured in config/lsp.lua):
+--     gd               - Go to definition (direct jump or quickfix)
+--     gD               - Go to declaration (direct jump or quickfix)
+--     gi               - Go to implementation (direct jump or quickfix)
+--     gr               - Find references (direct jump or quickfix)
+--     gy               - Go to type definition (direct jump or quickfix)
+--   LSP actions (configured in config/lsp.lua):
+--     <leader>lh       - Show hover documentation
+--     <leader>lr       - Rename symbol across codebase
+--     <leader>la       - Show code actions (refactoring, fixes)
+--     <leader>lf       - Format current buffer
 --   LSP pickers (configured below):
 --     <leader>ls       - List document symbols (methods/functions in file)
 --     <leader>lS       - List workspace symbols (project-wide search)
---   LSP actions (configured in config/lsp.lua):
---     <leader>lh       - Show hover documentation
---     <leader>lk       - Show signature help
---     <leader>lR       - Rename symbol across codebase
---     <leader>la       - Show code actions (refactoring, fixes)
---     <leader>lf       - Format current buffer
+--     <leader>ld       - List diagnostics (in mini.lua)
 
 -- LSP Pickers (via mini.extra)
 map('n', '<leader>ls', function()

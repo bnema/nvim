@@ -20,32 +20,17 @@ end
 local function on_attach(client, bufnr)
   local opts = { buffer = bufnr, noremap = true, silent = true }
 
-  -- Core LSP navigation keymaps - using pickers for better UX
-  -- These handle both single results (jump directly) and multiple results (show picker)
-  vim.keymap.set('n', 'gd', function()
-    require('mini.extra').pickers.lsp({ scope = 'definition' })
-  end, vim.tbl_extend('force', opts, { desc = 'Go to definition' }))
-
-  vim.keymap.set('n', 'gD', function()
-    require('mini.extra').pickers.lsp({ scope = 'declaration' })
-  end, vim.tbl_extend('force', opts, { desc = 'Go to declaration' }))
-
-  vim.keymap.set('n', 'gi', function()
-    require('mini.extra').pickers.lsp({ scope = 'implementation' })
-  end, vim.tbl_extend('force', opts, { desc = 'Go to implementation' }))
-
-  vim.keymap.set('n', 'gr', function()
-    require('mini.extra').pickers.lsp({ scope = 'references' })
-  end, vim.tbl_extend('force', opts, { desc = 'Show references' }))
-
-  vim.keymap.set('n', 'gy', function()
-    require('mini.extra').pickers.lsp({ scope = 'type_definition' })
-  end, vim.tbl_extend('force', opts, { desc = 'Go to type definition' }))
+  -- Core LSP navigation keymaps - use native vim.lsp.buf for direct jumps
+  -- These jump directly to single results, or show native list for multiple
+  vim.keymap.set('n', 'gd', lsp.buf.definition, vim.tbl_extend('force', opts, { desc = 'Go to definition' }))
+  vim.keymap.set('n', 'gD', lsp.buf.declaration, vim.tbl_extend('force', opts, { desc = 'Go to declaration' }))
+  vim.keymap.set('n', 'gi', lsp.buf.implementation, vim.tbl_extend('force', opts, { desc = 'Go to implementation' }))
+  vim.keymap.set('n', 'gr', lsp.buf.references, vim.tbl_extend('force', opts, { desc = 'Show references' }))
+  vim.keymap.set('n', 'gy', lsp.buf.type_definition, vim.tbl_extend('force', opts, { desc = 'Go to type definition' }))
 
   -- LSP information and action keymaps (leader + l prefix)
   vim.keymap.set('n', '<leader>lh', lsp.buf.hover, vim.tbl_extend('force', opts, { desc = 'Hover' }))
-  vim.keymap.set('n', '<leader>lk', lsp.buf.signature_help, vim.tbl_extend('force', opts, { desc = 'Signature help' }))
-  vim.keymap.set('n', '<leader>lR', lsp.buf.rename, vim.tbl_extend('force', opts, { desc = 'Rename symbol' }))
+  vim.keymap.set('n', '<leader>lr', lsp.buf.rename, vim.tbl_extend('force', opts, { desc = 'Rename symbol' }))
   vim.keymap.set('n', '<leader>la', lsp.buf.code_action, vim.tbl_extend('force', opts, { desc = 'Code action' }))
   vim.keymap.set('n', '<leader>lf', function() lsp.buf.format({ async = true }) end, vim.tbl_extend('force', opts, { desc = 'Format buffer' }))
 
