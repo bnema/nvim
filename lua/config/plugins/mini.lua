@@ -182,6 +182,10 @@ vim.schedule(function()
     },
   })
 
+  -- mini.extra - Additional pickers (load with mini.pick since they're related)
+  -- This must be loaded here (not deferred further) because LSP keymaps depend on it
+  require('mini.extra').setup()
+
   -- mini.bufremove - Buffer management (delete/wipeout buffers)
   require('mini.bufremove').setup()
 end)
@@ -197,45 +201,40 @@ vim.keymap.set('n', '<leader>ss', function() MiniPick.builtin.grep_live() end, {
 vim.keymap.set('n', '<leader>sf', function() MiniPick.builtin.grep() end, { noremap = true, silent = true, desc = 'Search pattern in files' })
 
 -- ============================================
--- STAGE 6: Extra pickers (deferred, loaded on demand)
+-- STAGE 6: Extra picker keymaps (after mini.extra is loaded)
 -- ============================================
 
 vim.schedule(function()
-  local ok, extra = pcall(require, 'mini.extra')
-  if not ok then
-    return
-  end
-
   -- Diagnostic picker
   vim.keymap.set('n', '<leader>ld', function()
-    extra.pickers.diagnostic()
+    require('mini.extra').pickers.diagnostic()
   end, { noremap = true, silent = true, desc = 'Diagnostics' })
 
   -- Note: LSP picker keymaps are defined in config/keymaps.lua
 
   -- Treesitter: Search symbols in current file by type
   vim.keymap.set('n', '<leader>ft', function()
-    extra.pickers.treesitter()
+    require('mini.extra').pickers.treesitter()
   end, { noremap = true, silent = true, desc = 'Treesitter Symbols' })
 
   -- Explorer: File/directory browser
   vim.keymap.set('n', '<leader>fe', function()
-    extra.pickers.explorer()
+    require('mini.extra').pickers.explorer()
   end, { noremap = true, silent = true, desc = 'Explorer' })
 
   -- Buffer lines: Search lines in all buffers
   vim.keymap.set('n', '<leader>fl', function()
-    extra.pickers.buf_lines()
+    require('mini.extra').pickers.buf_lines()
   end, { noremap = true, silent = true, desc = 'Buffer Lines' })
 
   -- Old files: Recently accessed files
   vim.keymap.set('n', '<leader>fo', function()
-    extra.pickers.oldfiles()
+    require('mini.extra').pickers.oldfiles()
   end, { noremap = true, silent = true, desc = 'Old Files' })
 
   -- History: Command history
   vim.keymap.set('n', '<leader>fH', function()
-    extra.pickers.history({ scope = ':' })
+    require('mini.extra').pickers.history({ scope = ':' })
   end, { noremap = true, silent = true, desc = 'Command History' })
 end)
 

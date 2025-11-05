@@ -128,19 +128,31 @@ end, { noremap = true, silent = true, desc = 'Yank diagnostic line' })
 --   <leader>ss         - Search in files (grep live, interactive)
 --   <leader>sf         - Search pattern in files (grep, upfront pattern)
 
--- LSP Navigation & Actions (configured in config/lsp.lua):
---   gd                 - Go to symbol definition
---   gD                 - Go to symbol declaration
---   gi                 - Go to symbol implementation
---   gr                 - Find symbol references
---   gy                 - Go to symbol type definition
---   <leader>lh         - Show hover documentation
---   <leader>ls         - List document symbols (methods/functions in file)
---   <leader>lS         - List workspace symbols (project-wide search)
---   <leader>lr         - Rename symbol across codebase
---   <leader>li         - Find symbol implementations
---   <leader>la         - Show code actions (refactoring, fixes)
---   <leader>lf         - Format current buffer
+-- LSP Navigation & Actions:
+--   Core navigation with pickers (configured in config/lsp.lua):
+--     gd               - Go to definition (picker)
+--     gD               - Go to declaration (picker)
+--     gi               - Go to implementation (picker)
+--     gr               - Find references (picker)
+--     gy               - Go to type definition (picker)
+--   LSP pickers (configured below):
+--     <leader>ls       - List document symbols (methods/functions in file)
+--     <leader>lS       - List workspace symbols (project-wide search)
+--   LSP actions (configured in config/lsp.lua):
+--     <leader>lh       - Show hover documentation
+--     <leader>lk       - Show signature help
+--     <leader>lR       - Rename symbol across codebase
+--     <leader>la       - Show code actions (refactoring, fixes)
+--     <leader>lf       - Format current buffer
+
+-- LSP Pickers (via mini.extra)
+map('n', '<leader>ls', function()
+  require('mini.extra').pickers.lsp({ scope = 'document_symbol' })
+end, { noremap = true, silent = true, desc = 'List document symbols' })
+
+map('n', '<leader>lS', function()
+  require('mini.extra').pickers.lsp({ scope = 'workspace_symbol' })
+end, { noremap = true, silent = true, desc = 'List workspace symbols' })
 
 -- Copilot AI Completion (configured in config/lsp.lua):
 --   <M-]>              - Accept next inline suggestion
