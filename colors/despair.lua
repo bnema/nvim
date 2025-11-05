@@ -309,11 +309,6 @@ hi('MiniStarterQuery', { fg = colors.bright_teal })
 hi('MiniIndentscopeSymbol', { fg = colors.slate_teal })
 hi('MiniIndentscopePrefix', { nocombine = true })
 
-hi('MiniJump', { fg = colors.void_black, bg = colors.bright_teal, bold = true })
-hi('MiniJump2dSpot', { fg = colors.void_black, bg = colors.bright_teal, bold = true })
-hi('MiniJump2dSpotAhead', { fg = colors.void_black, bg = colors.slate_teal, bold = true })
-hi('MiniJump2dSpotUnique', { fg = colors.void_black, bg = colors.bright_teal, bold = true })
-
 hi('MiniMapNormal', { fg = colors.seasalt, bg = colors.void_black })
 hi('MiniMapSymbolCount', { fg = colors.bright_teal })
 hi('MiniMapSymbolLine', { fg = colors.slate_teal })
