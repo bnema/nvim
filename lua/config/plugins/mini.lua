@@ -1,23 +1,109 @@
 -- Configure mini.nvim modules with optimized loading
-
-local now, later = MiniDeps.now, MiniDeps.later
+-- This file is called from native-packages.lua after mini.nvim is loaded
 
 -- ============================================
 -- STAGE 1: UI Essentials (load immediately)
 -- ============================================
-now(function()
-  -- mini.icons - File icons (required by statusline)
-  require('mini.icons').setup()
 
-  -- mini.statusline - Statusline
-  require('mini.statusline').setup()
+-- mini.icons - File icons (required by statusline)
+require('mini.icons').setup()
 
-  -- mini.tabline - Buffer tabs at the top
-  require('mini.tabline').setup()
+-- mini.statusline - Statusline
+require('mini.statusline').setup()
 
-  -- mini.notify - Notifications
-  require('mini.notify').setup()
-end)
+-- mini.tabline - Buffer tabs at the top
+require('mini.tabline').setup()
+
+-- mini.notify - Notifications
+require('mini.notify').setup()
+
+-- ============================================
+-- STAGE 1b: mini.starter (must load immediately for autoopen)
+-- ============================================
+
+-- Helper to get current Neovim version
+local function get_neovim_version()
+  local v = vim.version()
+  return string.format('%d.%d.%d', v.major, v.minor, v.patch)
+end
+
+-- Helper function to open yazi (replaces MiniFiles)
+local function open_yazi()
+  require('yazi').yazi()
+end
+
+-- Setup mini.starter - MUST happen before any buffer is created
+local function setup_mini_starter()
+  local ok, starter = pcall(require, 'mini.starter')
+  if not ok then
+    return
+  end
+
+  starter.setup({
+    autoopen = true,
+    evaluate_single = false,
+    items = {
+      -- Custom builtin actions
+      {
+        { name = "New buffer", action = "enew", section = "Builtin actions" },
+        { name = "File picker", action = "lua MiniPick.builtin.files()", section = "Builtin actions" },
+        { name = "Search in files", action = "lua MiniPick.builtin.grep_live()", section = "Builtin actions" },
+        { name = "Explorer", action = open_yazi, section = "Builtin actions" },
+        { name = "Quit", action = "qall", section = "Builtin actions" },
+      },
+      -- Recent files with directory path display
+      starter.sections.recent_files(10, false, function(path)
+        local dirname = vim.fn.fnamemodify(path, ':h')
+        if dirname == '.' or dirname == '' then
+          return ''
+        end
+        -- Replace home directory with ~ for cleaner display
+        dirname = dirname:gsub(vim.env.HOME, '~')
+
+        if #dirname > 30 then
+          -- Show only the last 3 directory components with ellipsis prefix
+          local parts = vim.split(dirname, '/')
+          if #parts > 3 then
+            return ' from ".../' .. table.concat({parts[#parts-2], parts[#parts-1], parts[#parts]}, '/') .. '"'
+          end
+        end
+        return ' from "' .. dirname .. '"'
+      end),
+    },
+    content_hooks = {
+      starter.gen_hook.adding_bullet(),
+      starter.gen_hook.indexing('all', { 'Builtin actions' }),
+      starter.gen_hook.padding(3, 2),
+      -- Highlight directory path in gray
+      function(content, buf_id)
+        vim.schedule(function()
+          local lines = vim.api.nvim_buf_get_lines(buf_id, 0, -1, false)
+          for i, line in ipairs(lines) do
+            -- Find pattern: filename from "dirname"
+            local from_start, from_end = line:find(' from ".-"')
+            if from_start then
+              -- Highlight the ' from "dirname"' part with MiniStarterInactive (gray)
+              vim.api.nvim_buf_add_highlight(
+                buf_id,
+                -1,
+                'MiniStarterInactive',
+                i - 1,
+                from_start - 1,
+                from_end
+              )
+            end
+          end
+        end)
+        return content
+      end,
+    },
+    header = 'Welcome to Neovim ' .. get_neovim_version(),
+    footer = '',
+  })
+end
+
+-- Initialize the starter screen immediately
+setup_mini_starter()
 
 -- ============================================
 -- STAGE 2: Insert-mode plugins (on InsertEnter)
@@ -25,7 +111,7 @@ end)
 vim.api.nvim_create_autocmd('InsertEnter', {
   once = true,
   callback = function()
-    later(function()
+    vim.schedule(function()
       -- mini.completion - Completion UI
       require('mini.completion').setup({
         window = {
@@ -45,16 +131,10 @@ vim.api.nvim_create_autocmd('InsertEnter', {
 })
 
 -- ============================================
--- STAGE 3: File explorer
+-- STAGE 3: Deferred modules (after startup)
 -- ============================================
--- Note: File explorer is handled by yazi.nvim (configured in native-packages.lua)
--- Directories opened with `nvim .` will automatically open in yazi
--- Manual trigger: <leader>e
 
--- ============================================
--- STAGE 4: Deferred modules (after startup)
--- ============================================
-later(function()
+vim.schedule(function()
   -- mini.surround - Surround mappings
   require('mini.surround').setup({
     mappings = {
@@ -71,26 +151,15 @@ later(function()
   -- mini.comment - Commenting
   require('mini.comment').setup()
 
-  -- mini.jump - Enhanced character search (f/F/t/T)
-  -- Disabled: Using flash.nvim instead for character search
-  -- require('mini.jump').setup({
-  --   mappings = {
-  --     forward = 'f',
-  --     backward = 'F',
-  --     forward_till = 't',
-  --     backward_till = 'T',
-  --     repeat_jump = ';',
-  --   },
-  -- })
-
   -- mini.align - Text alignment
   require('mini.align').setup()
 end)
 
 -- ============================================
--- STAGE 5: Git modules (after startup)
+-- STAGE 4: Git modules (deferred)
 -- ============================================
-later(function()
+
+vim.schedule(function()
   -- mini.git - Git integration
   require('mini.git').setup()
 
@@ -113,10 +182,11 @@ later(function()
 end)
 
 -- ============================================
--- STAGE 6: Fuzzy finder and helper modules (after startup)
+-- STAGE 5: Fuzzy finder and helper modules
 -- ============================================
-later(function()
-  -- mini.pick - Fuzzy finder (alternative to Telescope)
+
+vim.schedule(function()
+  -- mini.pick - Fuzzy finder
   require('mini.pick').setup({
     window = {
       config = function()
@@ -149,9 +219,10 @@ vim.keymap.set('n', '<leader>ss', function() MiniPick.builtin.grep_live() end, {
 vim.keymap.set('n', '<leader>sf', function() MiniPick.builtin.grep() end, { noremap = true, silent = true, desc = 'Search pattern in files' })
 
 -- ============================================
--- STAGE 7: Extra pickers (deferred, loaded on demand)
+-- STAGE 6: Extra pickers (deferred, loaded on demand)
 -- ============================================
-later(function()
+
+vim.schedule(function()
   local ok, extra = pcall(require, 'mini.extra')
   if not ok then
     return
@@ -209,9 +280,10 @@ later(function()
 end)
 
 -- ============================================
--- STAGE 8: mini.clue (after all keymaps loaded)
+-- STAGE 7: mini.clue (after all keymaps loaded)
 -- ============================================
-later(function()
+
+vim.defer_fn(function()
   -- mini.clue - Keybinding hints
   local miniclue = require('mini.clue')
   miniclue.setup({
@@ -280,4 +352,4 @@ later(function()
       scroll_up = '<C-u>',
     },
   })
-end)
+end, 200)
