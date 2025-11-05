@@ -23,13 +23,12 @@ nvim
 
 ## Features
 
-- **Minimal & Fast** - Focused on essentials, ~1200 LOC
+- **Minimal & Fast** - Focused on essentials, KISS philosophy
 - **mini.nvim Ecosystem** - File explorer, picker, completion, statusline, and more
-- **LSP Ready** - Language servers via Mason (Lua, Python, TypeScript, C/C++)
+- **LSP Ready** - Language servers via Mason (Lua, Python, TypeScript, Go, Svelte/SvelteKit)
 - **GitHub Copilot** - Native inline completion support
-- **Git Integration** - Fugitive + Gitsigns
-- **Custom Colorscheme** - "Despair" theme with comprehensive coverage
-- **Auto-formatting** - conform.nvim ready
+- **Git Integration** - mini.git + mini.diff for staging, diffing, and navigation
+- **Auto-formatting** - LSP-based formatting on save (Go, Svelte, TypeScript/JavaScript)
 - **Smart Keybinds** - Window navigation, tab management, buffer switching
 
 ## Core Keybindings
@@ -52,7 +51,7 @@ nvim
 ### File Operations
 | Key | Action |
 |-----|--------|
-| `<leader>e` | Toggle file explorer (mini.files) |
+| `<leader>e` | Toggle file explorer (yazi) |
 | `<leader>ff` | Find files (mini.pick) |
 | `<leader>fg` | Live grep |
 | `<leader>w` / `<leader>q` | Save / Quit |
@@ -73,14 +72,14 @@ Use `:help keymaps.lua` for the complete list or press `<leader>` to see hints w
 ├── init.lua                    # Entry point
 ├── lua/config/
 │   ├── settings.lua            # Editor options
-│   ├── plugins.lua             # Plugin bootstrap & list
+│   ├── native-packages.lua     # Native package management (vim.pack)
 │   ├── keymaps.lua             # Global keybindings
 │   ├── lsp.lua                 # LSP setup
+│   ├── format.lua              # Auto-formatting configuration
 │   └── plugins/
 │       ├── mini.lua            # mini.nvim modules config
-│       └── copilot.lua         # GitHub Copilot native inline completion
-└── colors/
-    └── despair.lua             # Custom dark colorscheme
+│       ├── copilot.lua         # GitHub Copilot native inline completion
+│       └── yazi.lua            # File manager integration
 ```
 
 ## Configuration
@@ -88,17 +87,20 @@ Use `:help keymaps.lua` for the complete list or press `<leader>` to see hints w
 Edit files in `lua/config/` to customize behavior:
 
 - **settings.lua** - Vim options (indentation, search, UI)
-- **plugins.lua** - Add/remove plugins, bootstrap setup
-- **lsp.lua** - Language servers, diagnostics, completion
+- **native-packages.lua** - Native vim.pack plugin management
+- **lsp.lua** - Language servers, diagnostics, LSP keybindings
+- **format.lua** - Auto-formatting on save configuration
 - **keymaps.lua** - Global keybindings
 - **plugins/mini.lua** - mini.nvim module configuration
-- **plugins/copilot.lua** - GitHub Copilot native inline completion settings
+- **plugins/copilot.lua** - GitHub Copilot native inline completion
+- **plugins/yazi.lua** - Yazi file manager integration
 
 ## Notes
 
-- Plugin installation is automatic via mini.deps
-- Plugins are stored in `~/.local/share/nvim/site/pack/deps/`
-- The configuration uses Neovim's native LSP (no vim-lsp needed)
+- Plugin installation is automatic via Neovim's native `vim.pack` system
+- Plugins are stored in `~/.local/share/nvim/site/pack/`
+- Uses Neovim's native LSP and inline completion (no external wrappers)
+- Formatting is LSP-based (no external formatters like conform.nvim needed)
 
 ## License
 

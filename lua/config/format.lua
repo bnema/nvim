@@ -1,113 +1,88 @@
 -- Auto-formatting configuration
--- Automatically format files on save based on filetype
+-- Automatically format files on save using LSP
 
 -- ============================================
--- GO FORMATTING
+-- AUTO-FORMAT ON SAVE (LSP-based)
 -- ============================================
--- Run 'go fmt' on Go files before saving
+-- Format on save for specified filetypes using LSP
+-- Supported formatters:
+--   - Go: gopls (gofmt + goimports)
+--   - Svelte/SvelteKit: svelte-language-server (prettier + prettier-plugin-svelte)
+--   - TypeScript/JavaScript: ts_ls (prettier via LSP)
 vim.api.nvim_create_autocmd('BufWritePre', {
-  pattern = '*.go',
-  callback = function()
-    -- Get the current buffer
-    local bufnr = vim.api.nvim_get_current_buf()
+  pattern = {
+    '*.go',           -- Go files
+    '*.svelte',       -- Svelte components
+    '*.ts',           -- TypeScript
+    '*.tsx',          -- TypeScript + JSX
+    '*.js',           -- JavaScript
+    '*.jsx',          -- JavaScript + JSX
+  },
+  callback = function(args)
+    -- Only format if an LSP client with formatting capability is attached
+    local clients = vim.lsp.get_clients({ bufnr = args.buf })
+    local has_formatter = false
 
-    -- Save cursor position
-    local cursor_pos = vim.api.nvim_win_get_cursor(0)
-
-    -- Try LSP formatting first (if gopls is attached)
-    local clients = vim.lsp.get_clients({ bufnr = bufnr, name = 'gopls' })
-    if #clients > 0 then
-      -- Use LSP formatting (synchronous to ensure it completes before save)
-      vim.lsp.buf.format({
-        bufnr = bufnr,
-        timeout_ms = 1000,
-        async = false,
-      })
-      vim.notify('Formatted with gopls', vim.log.levels.INFO)
-    else
-      -- Fallback: run 'go fmt' command directly
-      local filename = vim.api.nvim_buf_get_name(bufnr)
-      if filename ~= '' then
-        local result = vim.fn.system('go fmt ' .. vim.fn.shellescape(filename))
-        if vim.v.shell_error ~= 0 then
-          vim.notify('go fmt failed: ' .. result, vim.log.levels.ERROR)
-        else
-          -- Reload the buffer to show formatted content
-          vim.cmd('edit')
-          vim.notify('Formatted with go fmt', vim.log.levels.INFO)
-        end
+    for _, client in ipairs(clients) do
+      if client.server_capabilities.documentFormattingProvider then
+        has_formatter = true
+        break
       end
     end
 
-    -- Restore cursor position
-    pcall(vim.api.nvim_win_set_cursor, 0, cursor_pos)
+    if has_formatter then
+      -- Format synchronously before save (async = false ensures it completes)
+      vim.lsp.buf.format({
+        bufnr = args.buf,
+        timeout_ms = 3000,
+        async = false,
+      })
+    end
   end,
-  desc = 'Format Go files with go fmt on save',
+  desc = 'Format buffer with LSP on save',
 })
 
 -- ============================================
 -- OPTIONAL: Format other file types
 -- ============================================
--- Uncomment and customize as needed for other languages
+-- To enable auto-format on save for other languages, add their patterns below:
+-- Example patterns: '*.rs', '*.py', '*.lua', '*.ts', '*.js', '*.jsx', '*.tsx', etc.
 
--- Rust formatting with rustfmt
+-- Uncomment and add patterns to enable auto-format for additional file types:
 -- vim.api.nvim_create_autocmd('BufWritePre', {
---   pattern = '*.rs',
---   callback = function()
---     vim.lsp.buf.format({ async = false, timeout_ms = 1000 })
+--   pattern = { '*.rs', '*.py', '*.lua', '*.ts', '*.js' },
+--   callback = function(args)
+--     local clients = vim.lsp.get_clients({ bufnr = args.buf })
+--     for _, client in ipairs(clients) do
+--       if client.server_capabilities.documentFormattingProvider then
+--         vim.lsp.buf.format({ bufnr = args.buf, timeout_ms = 3000, async = false })
+--         break
+--       end
+--     end
 --   end,
---   desc = 'Format Rust files on save',
--- })
-
--- JavaScript/TypeScript formatting
--- vim.api.nvim_create_autocmd('BufWritePre', {
---   pattern = { '*.js', '*.ts', '*.jsx', '*.tsx' },
---   callback = function()
---     vim.lsp.buf.format({ async = false, timeout_ms = 1000 })
---   end,
---   desc = 'Format JS/TS files on save',
--- })
-
--- Python formatting
--- vim.api.nvim_create_autocmd('BufWritePre', {
---   pattern = '*.py',
---   callback = function()
---     vim.lsp.buf.format({ async = false, timeout_ms = 1000 })
---   end,
---   desc = 'Format Python files on save',
--- })
-
--- Lua formatting
--- vim.api.nvim_create_autocmd('BufWritePre', {
---   pattern = '*.lua',
---   callback = function()
---     vim.lsp.buf.format({ async = false, timeout_ms = 1000 })
---   end,
---   desc = 'Format Lua files on save',
+--   desc = 'Format buffer with LSP on save',
 -- })
 
 -- ============================================
--- COMMANDS
+-- MANUAL FORMATTING COMMANDS
 -- ============================================
 
--- Manually format current buffer
+-- :Format - Manually format current buffer with LSP
 vim.api.nvim_create_user_command('Format', function()
-  vim.lsp.buf.format({ async = false, timeout_ms = 3000 })
-end, { desc = 'Format current buffer with LSP' })
+  local clients = vim.lsp.get_clients({ bufnr = 0 })
+  local has_formatter = false
 
--- Format Go file manually
-vim.api.nvim_create_user_command('GoFmt', function()
-  local filename = vim.api.nvim_buf_get_name(0)
-  if filename == '' then
-    vim.notify('No file to format', vim.log.levels.WARN)
-    return
+  for _, client in ipairs(clients) do
+    if client.server_capabilities.documentFormattingProvider then
+      has_formatter = true
+      break
+    end
   end
 
-  local result = vim.fn.system('go fmt ' .. vim.fn.shellescape(filename))
-  if vim.v.shell_error ~= 0 then
-    vim.notify('go fmt failed: ' .. result, vim.log.levels.ERROR)
+  if has_formatter then
+    vim.lsp.buf.format({ async = false, timeout_ms = 3000 })
+    vim.notify('Buffer formatted', vim.log.levels.INFO)
   else
-    vim.cmd('edit')
-    vim.notify('File formatted with go fmt', vim.log.levels.INFO)
+    vim.notify('No LSP formatter available for this buffer', vim.log.levels.WARN)
   end
-end, { desc = 'Format current Go file with go fmt' })
+end, { desc = 'Format current buffer with LSP' })
