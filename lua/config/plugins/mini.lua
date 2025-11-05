@@ -74,28 +74,6 @@ local function setup_mini_starter()
       starter.gen_hook.adding_bullet(),
       starter.gen_hook.indexing('all', { 'Builtin actions' }),
       starter.gen_hook.padding(3, 2),
-      -- Highlight directory path in gray
-      function(content, buf_id)
-        vim.schedule(function()
-          local lines = vim.api.nvim_buf_get_lines(buf_id, 0, -1, false)
-          for i, line in ipairs(lines) do
-            -- Find pattern: filename from "dirname"
-            local from_start, from_end = line:find(' from ".-"')
-            if from_start then
-              -- Highlight the ' from "dirname"' part with MiniStarterInactive (gray)
-              vim.api.nvim_buf_add_highlight(
-                buf_id,
-                -1,
-                'MiniStarterInactive',
-                i - 1,
-                from_start - 1,
-                from_end
-              )
-            end
-          end
-        end)
-        return content
-      end,
     },
     header = 'Welcome to Neovim ' .. get_neovim_version(),
     footer = '',
@@ -233,25 +211,7 @@ vim.schedule(function()
     extra.pickers.diagnostic()
   end, { noremap = true, silent = true, desc = 'Diagnostics' })
 
-  -- LSP: Document symbols (methods, definitions in current file)
-  vim.keymap.set('n', '<leader>ls', function()
-    extra.pickers.lsp({ scope = 'document_symbol' })
-  end, { noremap = true, silent = true, desc = 'LSP Symbols' })
-
-  -- LSP: Workspace symbols (global search by definition name)
-  vim.keymap.set('n', '<leader>lS', function()
-    extra.pickers.lsp({ scope = 'workspace_symbol' })
-  end, { noremap = true, silent = true, desc = 'LSP Workspace Symbols' })
-
-  -- LSP: References (find all references of symbol under cursor)
-  vim.keymap.set('n', '<leader>lr', function()
-    extra.pickers.lsp({ scope = 'references' })
-  end, { noremap = true, silent = true, desc = 'LSP References' })
-
-  -- LSP: Implementation (find implementations)
-  vim.keymap.set('n', '<leader>li', function()
-    extra.pickers.lsp({ scope = 'implementation' })
-  end, { noremap = true, silent = true, desc = 'LSP Implementation' })
+  -- Note: LSP picker keymaps are defined in config/keymaps.lua
 
   -- Treesitter: Search symbols in current file by type
   vim.keymap.set('n', '<leader>ft', function()

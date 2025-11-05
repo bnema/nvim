@@ -5,6 +5,10 @@
 vim.g.mapleader = ' '           -- Space as primary leader
 vim.g.maplocalleader = '\\'     -- Backslash as buffer-local leader
 
+-- Disable space's default behavior (move right) in normal/visual mode
+-- This prevents conflicts with the leader key
+vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
+
 -- Options
 local opt = vim.opt
 
