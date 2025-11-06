@@ -1,1 +1,0 @@
-/home/brice/projects/despair-theme/neovim/despair.lua
