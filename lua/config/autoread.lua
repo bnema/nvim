@@ -123,8 +123,24 @@ vim.api.nvim_create_autocmd('FileChangedShellPost', {
   pattern = '*',
   callback = function()
     vim.notify('File reloaded from disk: ' .. vim.fn.expand('%:t'), vim.log.levels.INFO)
+
+    -- Notify LSP servers about the file change
+    local bufnr = vim.api.nvim_get_current_buf()
+    local clients = vim.lsp.get_clients({ bufnr = bufnr })
+    for _, client in ipairs(clients) do
+      if client.supports_method('textDocument/didChange') then
+        vim.lsp.util.buf_notify(bufnr, 'textDocument/didChange', {
+          textDocument = vim.lsp.util.make_text_document_params(bufnr),
+          contentChanges = {
+            {
+              text = table.concat(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), '\n'),
+            },
+          },
+        })
+      end
+    end
   end,
-  desc = 'Notify on external file reload',
+  desc = 'Notify on external file reload and update LSP',
 })
 
 -- ============================================
