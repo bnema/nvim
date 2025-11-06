@@ -76,6 +76,9 @@ vim.api.nvim_create_autocmd("UIEnter", {
       vim.cmd.packadd('nvim-treesitter')
       vim.cmd.packadd('nvim-treesitter-textobjects')
 
+      -- Load Treesitter configuration
+      require('config.plugins.treesitter')
+
       -- Load LSP configuration
       require('config.lsp')
 
