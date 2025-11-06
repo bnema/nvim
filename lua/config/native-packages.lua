@@ -11,7 +11,11 @@ vim.pack.add({
   { src = 'https://github.com/nvim-lua/plenary.nvim' },
   { src = 'https://github.com/nvim-tree/nvim-web-devicons' },
   { src = 'https://github.com/echasnovski/mini.nvim' },
+  { src = 'https://github.com/bnema/despair-theme' },
 }, { load = false, confirm = false })
+
+-- Load colorscheme immediately (needed before UI rendering)
+vim.cmd.packadd('despair-theme')
 
 -- Load mini.nvim immediately (needed for UI essentials)
 vim.cmd.packadd('mini.nvim')
