@@ -98,11 +98,11 @@ end)
 local opts = { noremap = true, silent = true }
 
 -- Accept inline completion with Tab (insert mode only)
--- Falls back to default Tab behavior when no suggestion is visible
+-- Does nothing when no suggestion is visible (to avoid inserting spaces)
 vim.keymap.set('i', config.keymaps.accept, function()
   if not lsp.inline_completion.get() then
-    -- No suggestion - use default Tab behavior
-    return '<Tab>'
+    -- No suggestion - do nothing (don't insert tab/spaces)
+    return ''
   end
   -- If get() returns truthy, it was accepted
 end, vim.tbl_extend('force', opts, {
