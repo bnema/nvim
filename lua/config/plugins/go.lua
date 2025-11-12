@@ -5,6 +5,9 @@
 local capabilities = _G.blink_cmp_capabilities or vim.lsp.protocol.make_client_capabilities()
 
 require('go').setup({
+  -- DISABLE go.nvim's default keymaps to avoid conflicts with our leader keymaps
+  lsp_keymaps = false,
+
   -- Disable go.nvim's gopls setup, we'll handle it in lsp.lua with custom settings
   lsp_cfg = {
     capabilities = capabilities,

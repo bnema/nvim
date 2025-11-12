@@ -32,6 +32,15 @@ local function on_attach(client, bufnr)
   if client.server_capabilities.inlineCompletionProvider then
     vim.lsp.inline_completion.enable(true, { bufnr = bufnr })
   end
+
+  -- Refresh mini.clue to pick up LSP keymaps
+  -- LSP keymaps are buffer-local, so mini.clue needs to re-discover them
+  vim.schedule(function()
+    local ok, miniclue = pcall(require, 'mini.clue')
+    if ok then
+      miniclue.ensure_buf_triggers(bufnr)
+    end
+  end)
 end
 
 -- Global LspAttach autocommand - ensures keybindings are set even if on_attach doesn't fire

@@ -16,5 +16,8 @@ require('config.native-packages')
 -- Global keymaps
 require('config.keymaps')
 
+-- Load mini.clue last to ensure all keymaps are discovered
+require('config.clue')
+
 -- Load colorscheme
 vim.cmd('colorscheme despair')
