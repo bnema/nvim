@@ -32,6 +32,182 @@ local function open_yazi()
   require('yazi').yazi()
 end
 
+-- ============================================
+-- Async Git Data Loading
+-- ============================================
+
+-- State for async data
+local async_data = {
+  git_root = nil,
+  git_status_items = nil,  -- nil = not loaded, {} = loaded but empty, or array of items
+  git_recent_items = nil,
+  vim_recent_items = nil,  -- Recent files from vim history
+}
+
+-- Get git root synchronously (fast operation)
+local function get_git_root()
+  if async_data.git_root ~= nil then
+    return async_data.git_root
+  end
+
+  local result = vim.fn.systemlist('git rev-parse --show-toplevel 2>/dev/null')[1]
+  if vim.v.shell_error == 0 and result then
+    async_data.git_root = result
+  else
+    async_data.git_root = false  -- Mark as not a git repo
+  end
+  return async_data.git_root
+end
+
+-- Load git status files asynchronously
+local function load_git_status_async()
+  local git_root = get_git_root()
+  if not git_root then
+    async_data.git_status_items = {}
+    return
+  end
+
+  vim.system({'git', 'status', '--short'}, { text = true }, function(obj)
+    vim.schedule(function()
+      if obj.code ~= 0 or not obj.stdout or obj.stdout == '' then
+        async_data.git_status_items = {}
+        return
+      end
+
+      local items = {}
+      for line in obj.stdout:gmatch('[^\r\n]+') do
+        if line and line ~= '' then
+          local status_code = line:sub(1, 2)
+          local file = line:sub(4)
+
+          local status_indicator = ''
+          if status_code:match('^[MARC]') then
+            status_indicator = '[staged] '
+          elseif status_code:match('^.[MD]') then
+            status_indicator = '[modified] '
+          elseif status_code:match('%?%?') then
+            status_indicator = '[untracked] '
+          end
+
+          local full_path = git_root .. '/' .. file
+          table.insert(items, {
+            name = status_indicator .. vim.fn.fnamemodify(file, ':t'),
+            action = 'edit ' .. vim.fn.fnameescape(full_path),
+            section = 'Git status',
+          })
+        end
+      end
+
+      async_data.git_status_items = items
+
+      -- Refresh starter if it's still open
+      if vim.bo.filetype == 'ministarter' then
+        require('mini.starter').refresh()
+      end
+    end)
+  end)
+end
+
+-- Load git recent files asynchronously
+local function load_git_recent_async(n)
+  n = n or 10
+  local git_root = get_git_root()
+  if not git_root then
+    async_data.git_recent_items = {}
+    return
+  end
+
+  vim.system(
+    {'git', 'log', '--pretty=format:', '--name-only', '--diff-filter=ACMRT', '-n', '10'},
+    { text = true },
+    function(obj)
+      vim.schedule(function()
+        if obj.code ~= 0 or not obj.stdout or obj.stdout == '' then
+          async_data.git_recent_items = {}
+          return
+        end
+
+        local seen = {}
+        local items = {}
+
+        for line in obj.stdout:gmatch('[^\r\n]+') do
+          if #items >= n then break end
+
+          if line and line ~= '' and not seen[line] then
+            seen[line] = true
+            local full_path = git_root .. '/' .. line
+            table.insert(items, {
+              name = vim.fn.fnamemodify(line, ':t'),
+              action = 'edit ' .. vim.fn.fnameescape(full_path),
+              section = 'Git recent (modified)',
+            })
+          end
+        end
+
+        async_data.git_recent_items = items
+
+        -- Refresh starter if it's still open
+        if vim.bo.filetype == 'ministarter' then
+          require('mini.starter').refresh()
+        end
+      end)
+    end
+  )
+end
+
+-- Load vim recent files asynchronously
+local function load_vim_recent_async(n, cwd_only, current_dir)
+  vim.schedule(function()
+    local starter = require('mini.starter')
+    local items = starter.sections.recent_files(n or 10, cwd_only or false, current_dir or true)()
+    async_data.vim_recent_items = items
+
+    -- Refresh starter if it's still open
+    if vim.bo.filetype == 'ministarter' then
+      starter.refresh()
+    end
+  end)
+end
+
+-- Custom section: Git status files (returns cached or loading placeholder)
+local function git_status_files()
+  return function()
+    if async_data.git_status_items == nil then
+      -- Still loading
+      return {
+        { name = 'Loading git status...', action = '', section = 'Git status' }
+      }
+    end
+    return async_data.git_status_items
+  end
+end
+
+-- Custom section: Git recent files (returns cached or loading placeholder)
+local function git_recent_files(n)
+  return function()
+    if async_data.git_recent_items == nil then
+      -- Still loading
+      return {
+        { name = 'Loading git recent...', action = '', section = 'Git recent (modified)' }
+      }
+    end
+    return async_data.git_recent_items
+  end
+end
+
+-- Custom section: Vim recent files (returns cached or loading placeholder)
+local function vim_recent_files(n, cwd_only, current_dir)
+  return function()
+    if async_data.vim_recent_items == nil then
+      -- Still loading
+      return {
+        { name = 'Loading recent files...', action = '', section = 'Recent files' }
+      }
+    end
+    return async_data.vim_recent_items
+  end
+end
+
 -- Setup mini.starter - MUST happen before any buffer is created
 local function setup_mini_starter()
   local ok, starter = pcall(require, 'mini.starter')
@@ -51,24 +227,12 @@ local function setup_mini_starter()
         { name = "Explorer", action = open_yazi, section = "Builtin actions" },
         { name = "Quit", action = "qall", section = "Builtin actions" },
       },
-      -- Recent files with directory path display
-      starter.sections.recent_files(10, false, function(path)
-        local dirname = vim.fn.fnamemodify(path, ':h')
-        if dirname == '.' or dirname == '' then
-          return ''
-        end
-        -- Replace home directory with ~ for cleaner display
-        dirname = dirname:gsub(vim.env.HOME, '~')
-
-        if #dirname > 30 then
-          -- Show only the last 3 directory components with ellipsis prefix
-          local parts = vim.split(dirname, '/')
-          if #parts > 3 then
-            return ' from ".../' .. table.concat({parts[#parts-2], parts[#parts-1], parts[#parts]}, '/') .. '"'
-          end
-        end
-        return ' from "' .. dirname .. '"'
-      end),
+      -- Git status files (staged/unstaged) - shown first if any
+      git_status_files(),
+      -- Git recently modified files
+      git_recent_files(5),
+      -- Recent files from vim history
+      vim_recent_files(5, false, true),
     },
     content_hooks = {
       starter.gen_hook.adding_bullet(),
@@ -82,6 +246,13 @@ end
 
 -- Initialize the starter screen immediately
 setup_mini_starter()
+
+-- Start loading all data asynchronously (won't block UI)
+vim.schedule(function()
+  load_git_status_async()
+  load_git_recent_async(5)
+  load_vim_recent_async(5, false, true)
+end)
 
 -- ============================================
 -- STAGE 2: Insert-mode plugins (on InsertEnter)
