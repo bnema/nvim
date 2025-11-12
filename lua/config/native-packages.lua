@@ -66,6 +66,10 @@ vim.pack.add({
   { src = 'https://github.com/williamboman/mason-lspconfig.nvim' },
   { src = 'https://github.com/nvim-treesitter/nvim-treesitter' },
   { src = 'https://github.com/nvim-treesitter/nvim-treesitter-textobjects' },
+  { src = 'https://github.com/ray-x/guihua.lua' },
+  { src = 'https://github.com/ray-x/go.nvim' },
+  { src = 'https://github.com/saghen/blink.cmp' }, -- Uses main branch (latest)
+  { src = 'https://github.com/rafamadriz/friendly-snippets' },
 }, { load = false, confirm = false })
 
 -- Load LSP infrastructure on UIEnter
@@ -79,12 +83,22 @@ vim.api.nvim_create_autocmd("UIEnter", {
       vim.cmd.packadd('mason-lspconfig.nvim')
       vim.cmd.packadd('nvim-treesitter')
       vim.cmd.packadd('nvim-treesitter-textobjects')
+      vim.cmd.packadd('guihua.lua')
+      vim.cmd.packadd('go.nvim')
+      vim.cmd.packadd('blink.cmp')
+      vim.cmd.packadd('friendly-snippets')
+
+      -- Load blink.cmp first (before LSP) so LSP can get capabilities
+      require('config.plugins.blink')
 
       -- Load Treesitter configuration
       require('config.plugins.treesitter')
 
       -- Load LSP configuration
       require('config.lsp')
+
+      -- Load go.nvim for Go language support
+      require('config.plugins.go')
 
       -- Load Copilot native inline completion (requires Neovim 0.12+)
       require('config.plugins.copilot')

@@ -90,17 +90,8 @@ vim.api.nvim_create_autocmd('InsertEnter', {
   once = true,
   callback = function()
     vim.schedule(function()
-      -- mini.completion - Completion UI
-      require('mini.completion').setup({
-        window = {
-          info = { height = 25, width = 80, border = 'rounded' },
-          signature = { height = 20, width = 80, border = 'rounded' },
-        },
-        lsp_completion = {
-          source_func = 'omnifunc',
-          auto_setup = true,
-        },
-      })
+      -- mini.completion is DISABLED in favor of blink.cmp
+      -- See config/plugins/blink.lua for completion configuration
 
       -- mini.pairs - Auto pairs
       require('mini.pairs').setup()

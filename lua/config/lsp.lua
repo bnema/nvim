@@ -6,15 +6,9 @@
 
 local lsp = vim.lsp
 
--- Build LSP capabilities from Neovim
-local capabilities = lsp.protocol.make_client_capabilities()
-
--- Extend capabilities with mini.completion support if available
--- Note: MiniCompletion may not be loaded yet (deferred to InsertEnter)
-local ok_mini, mini_completion = pcall(require, 'mini.completion')
-if ok_mini and mini_completion and type(mini_completion.get_lsp_capabilities) == 'function' then
-  capabilities = vim.tbl_deep_extend('force', capabilities, mini_completion.get_lsp_capabilities())
-end
+-- Build LSP capabilities from blink.cmp
+-- blink.cmp is loaded before this file in native-packages.lua
+local capabilities = _G.blink_cmp_capabilities or lsp.protocol.make_client_capabilities()
 
 -- LSP attach callback - called when LSP client attaches to buffer
 local function on_attach(client, bufnr)
@@ -49,29 +43,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
   end,
 })
 
--- Auto-organize imports and format on save for Go files
-vim.api.nvim_create_autocmd('BufWritePre', {
-  pattern = '*.go',
-  group = vim.api.nvim_create_augroup('GoFormat', { clear = true }),
-  callback = function()
-    -- Organize imports (add missing, remove unused)
-    local params = vim.lsp.util.make_range_params()
-    params.context = { only = { 'source.organizeImports' } }
-    local result = vim.lsp.buf_request_sync(0, 'textDocument/codeAction', params, 3000)
-
-    for cid, res in pairs(result or {}) do
-      for _, r in pairs(res.result or {}) do
-        if r.edit then
-          local enc = (vim.lsp.get_client_by_id(cid) or {}).offset_encoding or 'utf-16'
-          vim.lsp.util.apply_workspace_edit(r.edit, enc)
-        end
-      end
-    end
-
-    -- Format the buffer
-    vim.lsp.buf.format({ async = false })
-  end,
-})
+-- Note: Go formatting is handled by go.nvim in config/plugins/go.lua
 
 -- Setup Mason - package manager for language servers
 local ok_mason, mason = pcall(require, 'mason')
@@ -101,6 +73,10 @@ if ok_mason then
       handlers = {
         -- Default handler for all servers
         function(server_name)
+          -- Skip gopls since go.nvim handles it
+          if server_name == 'gopls' then
+            return
+          end
           require('lspconfig')[server_name].setup({
             on_attach = on_attach,
             capabilities = capabilities,
@@ -118,6 +94,10 @@ if ok_mason then
               },
             },
           })
+        end,
+        -- gopls is handled by go.nvim, skip it here
+        gopls = function()
+          -- No-op: go.nvim handles gopls configuration
         end,
       },
     })
