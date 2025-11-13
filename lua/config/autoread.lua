@@ -129,7 +129,8 @@ vim.api.nvim_create_autocmd('FileChangedShellPost', {
     local clients = vim.lsp.get_clients({ bufnr = bufnr })
     for _, client in ipairs(clients) do
       if client.supports_method('textDocument/didChange') then
-        vim.lsp.util.buf_notify(bufnr, 'textDocument/didChange', {
+        -- Use client.notify() instead of the non-existent vim.lsp.util.buf_notify()
+        client.notify('textDocument/didChange', {
           textDocument = vim.lsp.util.make_text_document_params(bufnr),
           contentChanges = {
             {
