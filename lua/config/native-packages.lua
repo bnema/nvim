@@ -143,7 +143,19 @@ require('config.plugins.mini')
 
 -- Create user command to update all packages
 vim.api.nvim_create_user_command('PackUpdate', function()
-  print('Updating all packages...')
+  vim.notify('Checking for package updates...', vim.log.levels.INFO)
+
+  -- Create autocmd to notify when updates complete
+  local update_group = vim.api.nvim_create_augroup('PackUpdateNotify', { clear = true })
+  vim.api.nvim_create_autocmd('PackChanged', {
+    group = update_group,
+    callback = function(ev)
+      if ev.data.kind == 'update' then
+        vim.notify(string.format('✓ Updated: %s', ev.data.spec.name), vim.log.levels.INFO)
+      end
+    end,
+  })
+
   vim.pack.update()
 end, { desc = 'Update all packages managed by vim.pack' })
 
@@ -172,7 +184,19 @@ end, {
 
 -- Create user command to force update (no confirmation)
 vim.api.nvim_create_user_command('PackUpdateForce', function()
-  print('Force updating all packages...')
+  vim.notify('Force updating all packages...', vim.log.levels.INFO)
+
+  -- Create autocmd to notify when updates complete
+  local update_group = vim.api.nvim_create_augroup('PackUpdateNotify', { clear = true })
+  vim.api.nvim_create_autocmd('PackChanged', {
+    group = update_group,
+    callback = function(ev)
+      if ev.data.kind == 'update' then
+        vim.notify(string.format('✓ Updated: %s', ev.data.spec.name), vim.log.levels.INFO)
+      end
+    end,
+  })
+
   vim.pack.update(nil, { force = true })
 end, { desc = 'Force update all packages without confirmation' })
 
