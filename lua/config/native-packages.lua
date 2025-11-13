@@ -114,6 +114,8 @@ vim.pack.add({
   { src = 'https://github.com/tpope/vim-fugitive' },
   { src = 'https://github.com/tpope/vim-sleuth' },
   { src = 'https://github.com/tpope/vim-repeat' },
+  { src = 'https://github.com/sindrets/diffview.nvim' },
+  { src = 'https://github.com/NeogitOrg/neogit' },
 }, { load = false, confirm = false })
 
 -- Load editor utilities after a short delay
@@ -121,6 +123,10 @@ vim.defer_fn(function()
   vim.cmd.packadd('vim-fugitive')
   vim.cmd.packadd('vim-sleuth')
   vim.cmd.packadd('vim-repeat')
+  vim.cmd.packadd('diffview.nvim')
+  require('config.plugins.diffview')
+  vim.cmd.packadd('neogit')
+  require('config.plugins.neogit')
 end, 100)
 
 -- ============================================
