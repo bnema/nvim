@@ -306,7 +306,7 @@ vim.schedule(function()
   -- mini.diff - Git diff visualization
   require('mini.diff').setup()
 
-  -- Git keybindings (for mini.git and mini.diff)
+  -- Git keybindings (for mini.git, mini.diff, and diffview)
   vim.keymap.set('n', '<leader>gg', ':Git<Space>', { noremap = true, silent = false, desc = 'Git status' })
   vim.keymap.set('n', '<leader>gc', ':Git commit<CR>', { noremap = true, silent = true, desc = 'Git commit' })
   vim.keymap.set('n', '<leader>gp', ':Git push<CR>', { noremap = true, silent = true, desc = 'Git push' })
@@ -319,6 +319,17 @@ vim.schedule(function()
   vim.keymap.set('n', '<leader>gk', '[h', { noremap = false, silent = true, desc = 'Previous hunk' })
   vim.keymap.set('n', '<leader>gJ', ']H', { noremap = false, silent = true, desc = 'Last hunk' })
   vim.keymap.set('n', '<leader>gK', '[H', { noremap = false, silent = true, desc = 'First hunk' })
+
+  -- Diffview keybindings
+  vim.keymap.set('n', '<leader>gv', ':DiffviewOpen<CR>', { noremap = true, silent = true, desc = 'Open diffview' })
+  vim.keymap.set('n', '<leader>gV', ':DiffviewClose<CR>', { noremap = true, silent = true, desc = 'Close diffview' })
+  vim.keymap.set('n', '<leader>gf', ':DiffviewFileHistory %<CR>', { noremap = true, silent = true, desc = 'File history (current)' })
+  vim.keymap.set('n', '<leader>gF', ':DiffviewFileHistory<CR>', { noremap = true, silent = true, desc = 'File history (all)' })
+
+  -- Neogit keybindings (Magit-like Git interface)
+  vim.keymap.set('n', '<leader>gn', function() require('neogit').open() end, { noremap = true, silent = true, desc = 'Open Neogit (status)' })
+  vim.keymap.set('n', '<leader>gN', function() require('neogit').open({ kind = 'split' }) end, { noremap = true, silent = true, desc = 'Open Neogit (split)' })
+  vim.keymap.set('n', '<leader>gC', function() require('neogit').open({ 'commit' }) end, { noremap = true, silent = true, desc = 'Neogit commit popup' })
 end)
 
 -- ============================================
