@@ -23,7 +23,7 @@ local function on_attach(client, bufnr)
   vim.keymap.set('n', 'gy', lsp.buf.type_definition, vim.tbl_extend('force', opts, { desc = 'Go to type definition' }))
 
   -- LSP information and action keymaps (leader + l prefix)
-  vim.keymap.set('n', '<leader>lh', lsp.buf.hover, vim.tbl_extend('force', opts, { desc = 'Hover' }))
+  vim.keymap.set('n', '<leader>ld', lsp.buf.hover, vim.tbl_extend('force', opts, { desc = 'Hover description' }))
   vim.keymap.set('n', '<leader>lr', lsp.buf.rename, vim.tbl_extend('force', opts, { desc = 'Rename symbol' }))
   vim.keymap.set('n', '<leader>la', lsp.buf.code_action, vim.tbl_extend('force', opts, { desc = 'Code action' }))
   vim.keymap.set('n', '<leader>lf', function() lsp.buf.format({ async = true }) end, vim.tbl_extend('force', opts, { desc = 'Format buffer' }))
