@@ -136,3 +136,120 @@ end, 100)
 -- Load mini.* plugin configurations immediately
 -- mini.starter with autoopen=true must run before any buffer is created
 require('config.plugins.mini')
+
+-- ============================================
+-- STAGE 7: Package Management Commands
+-- ============================================
+
+-- Create user command to update all packages
+vim.api.nvim_create_user_command('PackUpdate', function()
+  print('Updating all packages...')
+  vim.pack.update()
+end, { desc = 'Update all packages managed by vim.pack' })
+
+-- Create user command to update specific packages
+vim.api.nvim_create_user_command('PackUpdatePlugin', function(opts)
+  local plugin_name = opts.args
+  if plugin_name == '' then
+    print('Please specify a plugin name')
+    return
+  end
+  print('Updating ' .. plugin_name .. '...')
+  vim.pack.update({ plugin_name })
+end, {
+  nargs = 1,
+  desc = 'Update specific package by name',
+  complete = function()
+    -- Get all plugin names for completion
+    local plugins = vim.pack.get()
+    local names = {}
+    for _, plugin in ipairs(plugins) do
+      table.insert(names, plugin.spec.name)
+    end
+    return names
+  end
+})
+
+-- Create user command to force update (no confirmation)
+vim.api.nvim_create_user_command('PackUpdateForce', function()
+  print('Force updating all packages...')
+  vim.pack.update(nil, { force = true })
+end, { desc = 'Force update all packages without confirmation' })
+
+-- Create user command to list all managed packages (fast, no update check)
+vim.api.nvim_create_user_command('PackList', function()
+  local plugins = vim.pack.get()
+  local lines = {}
+
+  table.insert(lines, 'Installed packages:')
+  table.insert(lines, string.rep('=', 80))
+
+  for _, plugin in ipairs(plugins) do
+    local status = plugin.active and '✓' or '○'
+    local rev_str = plugin.rev and (' │ ' .. plugin.rev:sub(1, 7)) or ''
+    table.insert(lines, string.format('%s %-35s%s', status, plugin.spec.name, rev_str))
+  end
+
+  table.insert(lines, string.rep('=', 80))
+  table.insert(lines, 'Hint: Use :PackStatus to check for updates')
+
+  print(table.concat(lines, '\n'))
+end, { desc = 'List all managed packages' })
+
+-- Create user command to check package update status (slower, checks remote)
+vim.api.nvim_create_user_command('PackStatus', function()
+  local plugins = vim.pack.get()
+
+  print('Checking for updates...')
+  print(string.rep('=', 80))
+
+  local total = #plugins
+  local checked = 0
+
+  for _, plugin in ipairs(plugins) do
+    local status = plugin.active and '✓' or '○'
+    local update_status = ''
+    local rev_str = plugin.rev and (' │ ' .. plugin.rev:sub(1, 7)) or ''
+
+    -- Check if plugin needs update by fetching remote info
+    if plugin.path and plugin.rev then
+      -- Run git fetch to get latest remote info (in background, doesn't change local files)
+      local fetch_result = vim.system(
+        { 'git', 'fetch', '--quiet' },
+        { cwd = plugin.path, text = true }
+      ):wait()
+
+      if fetch_result.code == 0 then
+        -- Get the default branch or specified version
+        local remote_ref = 'origin/HEAD'
+        if plugin.spec.version and type(plugin.spec.version) == 'string' then
+          remote_ref = 'origin/' .. plugin.spec.version
+        end
+
+        -- Compare local rev with remote
+        local rev_list = vim.system(
+          { 'git', 'rev-list', '--count', plugin.rev .. '..' .. remote_ref },
+          { cwd = plugin.path, text = true }
+        ):wait()
+
+        if rev_list.code == 0 and rev_list.stdout then
+          local count_str = rev_list.stdout:match('%d+')
+          if count_str then
+            local commits_behind = tonumber(count_str)
+            if commits_behind and commits_behind > 0 then
+              update_status = string.format(' │ ↑ %d behind', commits_behind)
+            else
+              update_status = ' │ up-to-date'
+            end
+          end
+        end
+      end
+    end
+
+    checked = checked + 1
+    print(string.format('[%d/%d] %s %-30s%s%s', checked, total, status, plugin.spec.name, rev_str, update_status))
+  end
+
+  print(string.rep('=', 80))
+  print('Done! Run :PackUpdate to update packages with available updates')
+end, { desc = 'Check package update status (slow, fetches remote)' })

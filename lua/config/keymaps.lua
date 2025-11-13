@@ -104,6 +104,12 @@ map('n', '<leader>yd', function()
   vim.notify('Yanked diagnostic(s) to clipboard', vim.log.levels.INFO)
 end, { noremap = true, silent = true, desc = 'Yank diagnostic line' })
 
+-- Package management - Update plugins
+map('n', '<leader>pu', ':PackUpdate<CR>', { noremap = true, silent = true, desc = 'Update all packages' })
+map('n', '<leader>pU', ':PackUpdateForce<CR>', { noremap = true, silent = true, desc = 'Force update packages' })
+map('n', '<leader>pl', ':PackList<CR>', { noremap = true, silent = true, desc = 'List packages' })
+map('n', '<leader>ps', ':PackStatus<CR>', { noremap = true, silent = true, desc = 'Check package status' })
+
 -- ============================================================================
 -- PLUGIN & LSP KEYMAPS
 -- ============================================================================

@@ -47,6 +47,7 @@ miniclue.setup({
     { mode = 'n', keys = '<Leader>f', desc = 'Find' },
     { mode = 'n', keys = '<Leader>g', desc = 'Git' },
     { mode = 'n', keys = '<Leader>l', desc = 'LSP' },
+    { mode = 'n', keys = '<Leader>p', desc = 'Package' },
     { mode = 'n', keys = '<Leader>q', desc = 'Quit' },
     { mode = 'n', keys = '<Leader>s', desc = 'Search' },
     { mode = 'n', keys = '<Leader>t', desc = 'Tabs' },
