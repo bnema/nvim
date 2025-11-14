@@ -82,27 +82,16 @@ map('n', '<Tab>', ':bnext<CR>', { noremap = true, silent = true, desc = 'Next bu
 map('n', '<S-Tab>', ':bprevious<CR>', { noremap = true, silent = true, desc = 'Previous buffer' })
 
 -- Yank operations - Copy special content to clipboard
-map('n', '<leader>yl', function()
-  local line = vim.fn.getline('.')
-  vim.fn.setreg('+', line)
-  vim.notify('Yanked line to clipboard', vim.log.levels.INFO)
-end, { noremap = true, silent = true, desc = 'Yank line' })
+-- All yank logic has been moved to config/yank.lua for better organization
+local yank = require('config.yank')
 
-map('n', '<leader>yd', function()
-  local diagnostics = vim.diagnostic.get(0, { lnum = vim.fn.line('.') - 1 })
-  if #diagnostics == 0 then
-    vim.notify('No diagnostics on current line', vim.log.levels.WARN)
-    return
-  end
-  -- Concatenate all diagnostic messages for the line
-  local messages = {}
-  for _, diag in ipairs(diagnostics) do
-    table.insert(messages, diag.message)
-  end
-  local text = table.concat(messages, '\n')
-  vim.fn.setreg('+', text)
-  vim.notify('Yanked diagnostic(s) to clipboard', vim.log.levels.INFO)
-end, { noremap = true, silent = true, desc = 'Yank diagnostic line' })
+map('n', '<leader>yl', yank.yank_line, { noremap = true, silent = true, desc = 'Yank line' })
+map('n', '<leader>yd', yank.yank_diagnostic, { noremap = true, silent = true, desc = 'Yank diagnostic' })
+map('n', '<leader>yD', yank.yank_diagnostic_with_context, { noremap = true, silent = true, desc = 'Yank diagnostic with context' })
+map('n', '<leader>yb', yank.yank_buffer_diagnostics, { noremap = true, silent = true, desc = 'Yank all buffer diagnostics with context' })
+map('n', '<leader>yW', yank.yank_workspace_diagnostics, { noremap = true, silent = true, desc = 'Yank all workspace diagnostics with context' })
+map('n', '<leader>y', yank.yank_line_with_context, { noremap = true, silent = true, desc = 'Yank line with context' })
+map('v', '<leader>y', yank.yank_selection_with_context, { noremap = true, silent = true, desc = 'Yank selection with context' })
 
 -- Package management - Update plugins
 map('n', '<leader>pu', ':PackUpdate<CR>', { noremap = true, silent = true, desc = 'Update all packages' })
