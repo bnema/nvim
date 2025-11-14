@@ -4,6 +4,9 @@
 -- Use blink.cmp capabilities
 local capabilities = _G.blink_cmp_capabilities or vim.lsp.protocol.make_client_capabilities()
 
+-- State for gopls parameter name hints (toggleable) - these show inline like "w:", "node:"
+_G.gopls_hints_enabled = false
+
 require('go').setup({
   -- DISABLE go.nvim's default keymaps to avoid conflicts with our leader keymaps
   lsp_keymaps = false,
@@ -13,7 +16,7 @@ require('go').setup({
     capabilities = capabilities,
     settings = {
       gopls = {
-        -- Enable snippet placeholders for function parameters
+        -- Snippet placeholders for function parameters (tab stops in completions) - enabled by default
         usePlaceholders = true,
         -- Enable function call completions with parentheses
         completeFunctionCalls = true,
@@ -32,6 +35,16 @@ require('go').setup({
         },
         -- Enable staticcheck for additional diagnostics
         staticcheck = true,
+        -- Inlay hints configuration - parameter names shown inline (disabled by default, toggleable)
+        hints = {
+          assignVariableTypes = false,
+          compositeLiteralFields = false,
+          compositeLiteralTypes = false,
+          constantValues = false,
+          functionTypeParameters = false,
+          parameterNames = _G.gopls_hints_enabled,
+          rangeVariableTypes = false,
+        },
       },
     },
   },

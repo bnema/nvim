@@ -149,6 +149,42 @@ map('n', '<leader>lS', function()
   require('mini.extra').pickers.lsp({ scope = 'workspace_symbol' })
 end, { noremap = true, silent = true, desc = 'List workspace symbols' })
 
+-- Toggle gopls parameter name hints (Go-specific) - shows inline like "w:", "node:", "visible:"
+map('n', '<leader>lh', function()
+  -- Only works for Go files
+  if vim.bo.filetype ~= 'go' then
+    vim.notify('Parameter hints toggle only works for Go files', vim.log.levels.WARN)
+    return
+  end
+
+  -- Toggle the global state
+  _G.gopls_hints_enabled = not _G.gopls_hints_enabled
+
+  -- Find gopls client
+  local clients = vim.lsp.get_clients({ name = 'gopls' })
+  if #clients == 0 then
+    vim.notify('gopls is not running', vim.log.levels.WARN)
+    return
+  end
+
+  local client = clients[1]
+
+  -- Update gopls settings
+  local new_settings = {
+    gopls = {
+      hints = {
+        parameterNames = _G.gopls_hints_enabled,
+      }
+    }
+  }
+
+  client.config.settings = vim.tbl_deep_extend('force', client.config.settings or {}, new_settings)
+  client.notify('workspace/didChangeConfiguration', { settings = client.config.settings })
+
+  local status = _G.gopls_hints_enabled and 'enabled' or 'disabled'
+  vim.notify('Gopls parameter hints ' .. status, vim.log.levels.INFO)
+end, { noremap = true, silent = true, desc = 'Toggle parameter hints (Go)' })
+
 -- Copilot AI Completion (configured in config/lsp.lua):
 --   <M-]>              - Accept next inline suggestion
 --   <M-[>              - Accept previous inline suggestion
