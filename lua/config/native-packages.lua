@@ -116,6 +116,9 @@ vim.pack.add({
   { src = 'https://github.com/tpope/vim-repeat' },
   { src = 'https://github.com/sindrets/diffview.nvim' },
   { src = 'https://github.com/NeogitOrg/neogit' },
+  { src = 'https://github.com/lewis6991/gitsigns.nvim' },
+  { src = 'https://github.com/kevinhwang91/nvim-hlslens' },
+  { src = 'https://github.com/petertriho/nvim-scrollbar' },
 }, { load = false, confirm = false })
 
 -- Load editor utilities after a short delay
@@ -127,6 +130,10 @@ vim.defer_fn(function()
   require('config.plugins.diffview')
   vim.cmd.packadd('neogit')
   require('config.plugins.neogit')
+  vim.cmd.packadd('gitsigns.nvim')
+  vim.cmd.packadd('nvim-hlslens')
+  vim.cmd.packadd('nvim-scrollbar')
+  require('config.plugins.scrollbar')
 end, 100)
 
 -- ============================================
