@@ -2,13 +2,56 @@
 -- This file handles the startup screen with optimized data loading
 
 -- ============================================
+-- Constants
+-- ============================================
+
+local ICON_UPDATE_AVAILABLE = '\u{f062}'  -- nerd font arrow up
+local ICON_UP_TO_DATE = '\u{f00c}'        -- nerd font check mark
+
+-- ============================================
+-- State for async data (must be defined before helper functions)
+-- ============================================
+
+local async_data = {
+  git_root = nil,
+  git_status_items = nil,  -- nil = not loaded, {} = loaded but empty, or array of items
+  git_recent_items = nil,
+  vim_recent_items = nil,  -- Recent files from vim history
+  update_available = false,   -- Whether a newer version is available
+  update_check_complete = false, -- Whether the update check has finished
+}
+
+-- ============================================
 -- Helper Functions
 -- ============================================
 
--- Helper to get current Neovim version
+-- Helper to get exact Neovim version string
 local function get_neovim_version()
-  local v = vim.version()
-  return string.format('%d.%d.%d', v.major, v.minor, v.patch)
+  -- Get the exact version string from :version output
+  local version_info = vim.fn.execute('version')
+  -- Extract the first line which contains "NVIM v0.12.0-dev-1683+gdbd7f45873"
+  local version_line = version_info:match('(NVIM v[^\n\r]+)')
+
+  local version_str
+  if version_line then
+    -- Remove "NVIM " prefix
+    version_str = version_line:gsub('^NVIM ', '')
+  else
+    -- Fallback to basic version if pattern doesn't match
+    local v = vim.version()
+    version_str = string.format('v%d.%d.%d', v.major, v.minor, v.patch)
+  end
+
+  -- Add icon based on update check status
+  if async_data.update_check_complete then
+    if async_data.update_available then
+      return version_str .. ' ' .. ICON_UPDATE_AVAILABLE
+    else
+      return version_str .. ' ' .. ICON_UP_TO_DATE
+    end
+  end
+
+  return version_str
 end
 
 -- Helper function to open yazi (replaces MiniFiles)
@@ -170,14 +213,6 @@ end
 -- ============================================
 -- Async Git Data Loading
 -- ============================================
-
--- State for async data
-local async_data = {
-  git_root = nil,
-  git_status_items = nil,  -- nil = not loaded, {} = loaded but empty, or array of items
-  git_recent_items = nil,
-  vim_recent_items = nil,  -- Recent files from vim history
-}
 
 -- Get git root synchronously (fast operation)
 local function get_git_root()
@@ -438,6 +473,63 @@ local function load_vim_recent_async(n, cwd_only, current_dir)
   end)
 end
 
+-- Check for Neovim updates asynchronously (checks main branch)
+local function check_neovim_update_async()
+  -- Extract current commit hash from version string
+  local version_info = vim.fn.execute('version')
+  local version_line = version_info:match('(NVIM v[^\n\r]+)')
+
+  if not version_line then
+    return
+  end
+
+  -- Extract commit hash (e.g., "v0.12.0-dev-1683+gdbd7f45873" -> "dbd7f45873")
+  local current_commit = version_line:match('%+g(%w+)')
+  if not current_commit then
+    return
+  end
+
+  -- Fetch latest commit hash from neovim/neovim main branch
+  vim.system(
+    {'curl', '-s', 'https://api.github.com/repos/neovim/neovim/commits/master'},
+    { text = true },
+    function(obj)
+      vim.schedule(function()
+        if obj.code ~= 0 or not obj.stdout or obj.stdout == '' then
+          async_data.update_check_complete = true
+          return
+        end
+
+        -- Parse JSON response to get latest commit SHA
+        local latest_commit = obj.stdout:match('"sha"%s*:%s*"(%w+)"')
+        if not latest_commit then
+          async_data.update_check_complete = true
+          return
+        end
+
+        -- Compare commit hashes (compare first 7-10 characters)
+        local current_short = current_commit:sub(1, 10)
+        local latest_short = latest_commit:sub(1, 10)
+
+        async_data.update_available = (current_short ~= latest_short)
+        async_data.update_check_complete = true
+
+        -- Refresh starter if it's still open
+        if vim.bo.filetype == 'ministarter' then
+          require('mini.starter').refresh()
+          -- Reapply timestamp highlights after refresh
+          vim.defer_fn(function()
+            local bufnr = vim.api.nvim_get_current_buf()
+            if vim.bo[bufnr].filetype == 'ministarter' then
+              apply_timestamp_highlights(bufnr)
+            end
+          end, 10)
+        end
+      end)
+    end
+  )
+end
+
 -- ============================================
 -- Custom Sections
 -- ============================================
@@ -534,7 +626,9 @@ local function setup_mini_starter()
       starter.gen_hook.indexing('all', { 'Builtin actions' }),
       starter.gen_hook.padding(3, 2),
     },
-    header = 'Welcome to Neovim ' .. get_neovim_version(),
+    header = function()
+      return 'Welcome to Neovim ' .. get_neovim_version()
+    end,
     footer = '',
   })
 end
@@ -547,4 +641,5 @@ vim.schedule(function()
   load_git_status_async()
   load_git_recent_async(5)
   load_vim_recent_async(5, false, true)
+  check_neovim_update_async()
 end)
