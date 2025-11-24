@@ -149,6 +149,152 @@ map('n', '<leader>lS', function()
   require('mini.extra').pickers.lsp({ scope = 'workspace_symbol' })
 end, { noremap = true, silent = true, desc = 'List workspace symbols' })
 
+-- ============================================================================
+-- DIAGNOSTIC MENU (<leader>d)
+-- ============================================================================
+-- Comprehensive diagnostic features using Neovim's builtin diagnostic API
+
+-- Diagnostic Navigation
+map('n', '<leader>dn', vim.diagnostic.goto_next, { noremap = true, silent = true, desc = 'Next diagnostic' })
+map('n', '<leader>dp', vim.diagnostic.goto_prev, { noremap = true, silent = true, desc = 'Previous diagnostic' })
+
+-- Jump to next/prev by severity
+map('n', '<leader>de', function()
+  vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR })
+end, { noremap = true, silent = true, desc = 'Next error' })
+
+map('n', '<leader>dE', function()
+  vim.diagnostic.goto_prev({ severity = vim.diagnostic.severity.ERROR })
+end, { noremap = true, silent = true, desc = 'Previous error' })
+
+map('n', '<leader>dw', function()
+  vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.WARN })
+end, { noremap = true, silent = true, desc = 'Next warning' })
+
+map('n', '<leader>dW', function()
+  vim.diagnostic.goto_prev({ severity = vim.diagnostic.severity.WARN })
+end, { noremap = true, silent = true, desc = 'Previous warning' })
+
+-- Diagnostic Lists (via mini.extra)
+map('n', '<leader>db', function()
+  require('mini.extra').pickers.diagnostic({ scope = 'current' })
+end, { noremap = true, silent = true, desc = 'List buffer diagnostics' })
+
+map('n', '<leader>dB', function()
+  require('mini.extra').pickers.diagnostic({ scope = 'all' })
+end, { noremap = true, silent = true, desc = 'List workspace diagnostics' })
+
+-- Display diagnostics
+map('n', '<leader>dd', function()
+  vim.diagnostic.open_float(nil, { scope = 'line' })
+end, { noremap = true, silent = true, desc = 'Show line diagnostics' })
+
+map('n', '<leader>dD', function()
+  vim.diagnostic.open_float(nil, { scope = 'cursor' })
+end, { noremap = true, silent = true, desc = 'Show cursor diagnostics' })
+
+map('n', '<leader>dl', vim.diagnostic.setloclist, { noremap = true, silent = true, desc = 'Diagnostics to location list' })
+map('n', '<leader>dq', vim.diagnostic.setqflist, { noremap = true, silent = true, desc = 'Diagnostics to quickfix' })
+
+-- Show diagnostic counts
+map('n', '<leader>dc', function()
+  local counts = vim.diagnostic.count(0)
+  local error_count = counts[vim.diagnostic.severity.ERROR] or 0
+  local warn_count = counts[vim.diagnostic.severity.WARN] or 0
+  local info_count = counts[vim.diagnostic.severity.INFO] or 0
+  local hint_count = counts[vim.diagnostic.severity.HINT] or 0
+
+  local msg = string.format(
+    'Diagnostics: E:%d W:%d I:%d H:%d',
+    error_count, warn_count, info_count, hint_count
+  )
+  vim.notify(msg, vim.log.levels.INFO)
+end, { noremap = true, silent = true, desc = 'Show diagnostic count' })
+
+-- Toggle diagnostic displays
+map('n', '<leader>dt', function()
+  local config = vim.diagnostic.config()
+  vim.diagnostic.config({ virtual_text = not config.virtual_text })
+  local status = not config.virtual_text and 'enabled' or 'disabled'
+  vim.notify('Virtual text ' .. status, vim.log.levels.INFO)
+end, { noremap = true, silent = true, desc = 'Toggle virtual text' })
+
+map('n', '<leader>ds', function()
+  local config = vim.diagnostic.config()
+  local new_value = not config.signs
+  vim.diagnostic.config({ signs = new_value })
+  local status = new_value and 'enabled' or 'disabled'
+  vim.notify('Diagnostic signs ' .. status, vim.log.levels.INFO)
+end, { noremap = true, silent = true, desc = 'Toggle signs' })
+
+map('n', '<leader>du', function()
+  local config = vim.diagnostic.config()
+  local new_value = not config.underline
+  vim.diagnostic.config({ underline = new_value })
+  local status = new_value and 'enabled' or 'disabled'
+  vim.notify('Diagnostic underline ' .. status, vim.log.levels.INFO)
+end, { noremap = true, silent = true, desc = 'Toggle underline' })
+
+-- Toggle all diagnostics on/off
+map('n', '<leader>dT', function()
+  if vim.g.diagnostics_enabled == nil then
+    vim.g.diagnostics_enabled = true
+  end
+
+  if vim.g.diagnostics_enabled then
+    vim.diagnostic.enable(false)
+    vim.g.diagnostics_enabled = false
+    vim.notify('Diagnostics disabled', vim.log.levels.INFO)
+  else
+    vim.diagnostic.enable(true)
+    vim.g.diagnostics_enabled = true
+    vim.notify('Diagnostics enabled', vim.log.levels.INFO)
+  end
+end, { noremap = true, silent = true, desc = 'Toggle diagnostics on/off' })
+
+-- Filter diagnostics by severity
+map('n', '<leader>df', function()
+  vim.ui.select(
+    { 'All', 'Errors only', 'Warnings+', 'Info+', 'Hints+' },
+    { prompt = 'Filter diagnostics by severity:' },
+    function(choice)
+      if not choice then return end
+
+      local severity_filter = nil
+      if choice == 'Errors only' then
+        severity_filter = { min = vim.diagnostic.severity.ERROR }
+      elseif choice == 'Warnings+' then
+        severity_filter = { min = vim.diagnostic.severity.WARN }
+      elseif choice == 'Info+' then
+        severity_filter = { min = vim.diagnostic.severity.INFO }
+      elseif choice == 'Hints+' then
+        severity_filter = { min = vim.diagnostic.severity.HINT }
+      end
+
+      vim.diagnostic.config({
+        virtual_text = severity_filter and { severity = severity_filter } or true,
+        signs = severity_filter and { severity = severity_filter } or true,
+      })
+
+      vim.notify('Diagnostics filtered: ' .. choice, vim.log.levels.INFO)
+    end
+  )
+end, { noremap = true, silent = true, desc = 'Filter by severity' })
+
+-- Reset diagnostic configuration to defaults
+map('n', '<leader>dr', function()
+  vim.diagnostic.config({
+    virtual_text = true,
+    signs = true,
+    underline = true,
+    update_in_insert = false,
+    severity_sort = true,
+  })
+  vim.diagnostic.enable(true)
+  vim.g.diagnostics_enabled = true
+  vim.notify('Diagnostic config reset to defaults', vim.log.levels.INFO)
+end, { noremap = true, silent = true, desc = 'Reset diagnostic config' })
+
 -- Toggle gopls parameter name hints (Go-specific) - shows inline like "w:", "node:", "visible:"
 map('n', '<leader>lh', function()
   -- Only works for Go files
