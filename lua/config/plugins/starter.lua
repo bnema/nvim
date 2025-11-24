@@ -16,6 +16,157 @@ local function open_yazi()
   require('yazi').yazi()
 end
 
+-- Convert a second-difference into a human string
+local function format_relative_diff(diff)
+  if diff < 0 then diff = 0 end
+  -- Minutes (less than 1 hour)
+  if diff < 3600 then
+    local minutes = math.floor(diff / 60)
+    return string.format('(%dm ago)', minutes)
+  end
+
+  -- Hours (less than 1 day)
+  if diff < 86400 then
+    local hours = math.floor(diff / 3600)
+    return string.format('(%dh ago)', hours)
+  end
+
+  -- Days (less than 30 days)
+  if diff < 2592000 then
+    local days = math.floor(diff / 86400)
+    return string.format('(%dd ago)', days)
+  end
+
+  -- Months (capital M)
+  local months = math.floor(diff / 2592000)
+  return string.format('(%dM ago)', months)
+end
+
+-- Helper to format relative time in a minimal way
+-- Returns strings like: "16m ago", "3h ago", "2d ago", "2M ago"
+-- If file stat is missing, it can fall back to a provided epoch timestamp
+local function format_relative_time(filepath, fallback_epoch)
+  -- Ensure absolute path
+  local abs_path = filepath
+  if not filepath:match('^/') then
+    abs_path = vim.fn.fnamemodify(filepath, ':p')
+  end
+
+  local stat = vim.loop.fs_stat(abs_path)
+  local now = os.time()
+
+  if not stat then
+    if fallback_epoch then
+      return format_relative_diff(now - fallback_epoch)
+    end
+    return ''
+  end
+
+  local diff = now - stat.mtime.sec
+
+  return format_relative_diff(diff)
+end
+
+-- Helper to check if a file has a valid extension (filters out files without extensions or non-code files)
+local function has_valid_extension(filepath)
+  local filename = vim.fn.fnamemodify(filepath, ':t')
+  local ext = vim.fn.fnamemodify(filepath, ':e')
+
+  -- Special case: allow Makefile and similar files without extensions
+  local valid_filenames = {
+    'Makefile', 'makefile', 'Dockerfile', 'dockerfile',
+    'Rakefile', 'Gemfile', 'Vagrantfile', 'Procfile',
+  }
+
+  for _, valid_name in ipairs(valid_filenames) do
+    if filename == valid_name then
+      return true
+    end
+  end
+
+  -- Require extension for other files
+  if ext == '' then
+    return false
+  end
+
+  -- List of common code/config file extensions
+  local valid_extensions = {
+    -- Programming languages
+    'lua', 'py', 'js', 'ts', 'jsx', 'tsx', 'go', 'rs', 'c', 'cpp', 'h', 'hpp',
+    'java', 'rb', 'php', 'cs', 'swift', 'kt', 'scala', 'sh', 'bash', 'zsh',
+    'vim', 'sql', 'r', 'dart', 'ex', 'exs', 'elm', 'hs', 'clj', 'cljs',
+    -- Web & markup
+    'html', 'css', 'scss', 'sass', 'less', 'vue', 'svelte', 'astro',
+    'xml', 'json', 'yaml', 'yml', 'toml', 'md', 'mdx', 'rst', 'tex',
+    -- Config files
+    'conf', 'config', 'ini', 'env', 'editorconfig', 'gitignore', 'dockerignore',
+  }
+
+  for _, valid_ext in ipairs(valid_extensions) do
+    if ext == valid_ext then
+      return true
+    end
+  end
+
+  return false
+end
+
+-- Apply timestamp highlighting using extmarks (called after buffer is rendered)
+local function apply_timestamp_highlights(bufnr)
+  -- Define a muted highlight group for timestamps (subtle grey)
+  vim.api.nvim_set_hl(0, 'MiniStarterTimestamp', { link = 'Comment' })
+
+  -- Create namespace for our highlights
+  local ns_id = vim.api.nvim_create_namespace('ministarter_timestamps')
+
+  -- Clear any existing highlights
+  vim.api.nvim_buf_clear_namespace(bufnr, ns_id, 0, -1)
+
+  -- Get all lines in the buffer
+  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+
+  for line_num, line_text in ipairs(lines) do
+    -- Find "from" keyword only (not the directory name)
+    local from_start, from_end = line_text:find(' from ')
+    if from_start then
+      vim.api.nvim_buf_add_highlight(
+        bufnr,
+        ns_id,
+        'MiniStarterTimestamp',
+        line_num - 1,
+        from_start - 1,
+        from_end
+      )
+    end
+
+    -- Find "in" keyword only (not the directory name)
+    local in_start, in_end = line_text:find(' in ')
+    if in_start then
+      vim.api.nvim_buf_add_highlight(
+        bufnr,
+        ns_id,
+        'MiniStarterTimestamp',
+        line_num - 1,
+        in_start - 1,
+        in_end
+      )
+    end
+
+    -- Find timestamp pattern: (Xm ago), (Xh ago), (Xd ago), (XM ago)
+    local ts_start, ts_end = line_text:find('%(%d+[mhdM]%s+ago%)')
+    if ts_start then
+      vim.api.nvim_buf_add_highlight(
+        bufnr,
+        ns_id,
+        'MiniStarterTimestamp',
+        line_num - 1,
+        ts_start - 1,
+        ts_end
+      )
+    end
+  end
+end
+
 -- ============================================
 -- Async Git Data Loading
 -- ============================================
@@ -69,6 +220,8 @@ local function load_git_status_async()
             local status_code = line:sub(1, 2)
             local file = line:sub(4)
 
+            local filename = vim.fn.fnamemodify(file, ':t')
+            local parent_dir = vim.fn.fnamemodify(file, ':h:t')
             local status_indicator = ''
             if status_code:match('^[MARC]') then
               status_indicator = '[staged] '
@@ -82,8 +235,19 @@ local function load_git_status_async()
             end
 
             local full_path = git_root .. '/' .. file
+            local display_name = status_indicator .. filename
+
+            if parent_dir and parent_dir ~= '' and parent_dir ~= '.' then
+              display_name = string.format('%s in %s', display_name, parent_dir)
+            end
+
+            local time_ago = format_relative_time(full_path)
+            if time_ago ~= '' then
+              display_name = string.format('%s %s', display_name, time_ago)
+            end
+
             table.insert(items, {
-              name = status_indicator .. vim.fn.fnamemodify(file, ':t'),
+              name = display_name,
               action = 'edit ' .. vim.fn.fnameescape(full_path),
               section = 'Git status',
             })
@@ -117,6 +281,13 @@ local function load_git_status_async()
       -- Always refresh starter after loading data (even if empty)
       if vim.bo.filetype == 'ministarter' then
         require('mini.starter').refresh()
+        -- Reapply timestamp highlights after refresh
+        vim.defer_fn(function()
+          local bufnr = vim.api.nvim_get_current_buf()
+          if vim.bo[bufnr].filetype == 'ministarter' then
+            apply_timestamp_highlights(bufnr)
+          end
+        end, 10)
       end
     end)
   end)
@@ -132,7 +303,7 @@ local function load_git_recent_async(n)
   end
 
   vim.system(
-    {'git', 'log', '--pretty=format:', '--name-only', '--diff-filter=ACMRT', '-n', '10'},
+    {'git', 'log', '--pretty=format:%ct', '--name-only', '--diff-filter=ACMRT', '-n', '10'},
     { text = true },
     function(obj)
       vim.schedule(function()
@@ -143,18 +314,47 @@ local function load_git_recent_async(n)
 
         local seen = {}
         local items = {}
+        local current_commit_time = nil
 
         for line in obj.stdout:gmatch('[^\r\n]+') do
           if #items >= n then break end
 
-          if line and line ~= '' and not seen[line] then
-            seen[line] = true
-            local full_path = git_root .. '/' .. line
-            table.insert(items, {
-              name = vim.fn.fnamemodify(line, ':t'),
-              action = 'edit ' .. vim.fn.fnameescape(full_path),
-              section = 'Git recent (modified)',
-            })
+          if line and line ~= '' then
+            -- Capture commit timestamp rows emitted by --pretty=format:%ct
+            local maybe_epoch = tonumber(line)
+            if maybe_epoch then
+              current_commit_time = maybe_epoch
+            elseif not seen[line] then
+              seen[line] = true
+              local full_path = git_root .. '/' .. line
+
+              -- Filter: only show files with valid extensions
+              if has_valid_extension(line) then
+                local filename = vim.fn.fnamemodify(line, ':t')
+
+                -- Get parent directory name
+                local parent_dir = vim.fn.fnamemodify(line, ':h:t')
+
+                -- Get timestamp for the file
+                local time_ago = format_relative_time(full_path, current_commit_time)
+
+                -- Build display name: "filename in dir (time ago)"
+                local display_name = filename
+                if parent_dir and parent_dir ~= '' and parent_dir ~= '.' then
+                  display_name = string.format('%s in %s', filename, parent_dir)
+                end
+
+                if time_ago ~= '' then
+                  display_name = string.format('%s %s', display_name, time_ago)
+                end
+
+                table.insert(items, {
+                  name = display_name,
+                  action = 'edit ' .. vim.fn.fnameescape(full_path),
+                  section = 'Git recent (modified)',
+                })
+              end
+            end
           end
         end
 
@@ -163,22 +363,77 @@ local function load_git_recent_async(n)
         -- Refresh starter if it's still open
         if vim.bo.filetype == 'ministarter' then
           require('mini.starter').refresh()
+          -- Reapply timestamp highlights after refresh
+          vim.defer_fn(function()
+            local bufnr = vim.api.nvim_get_current_buf()
+            if vim.bo[bufnr].filetype == 'ministarter' then
+              apply_timestamp_highlights(bufnr)
+            end
+          end, 10)
         end
       end)
     end
   )
 end
 
--- Load vim recent files asynchronously
+-- Load vim recent files asynchronously (custom implementation with timestamps)
 local function load_vim_recent_async(n, cwd_only, current_dir)
   vim.schedule(function()
-    local starter = require('mini.starter')
-    local items = starter.sections.recent_files(n or 10, cwd_only or false, current_dir or true)()
+    local items = {}
+
+    -- Get recent files from oldfiles
+    local oldfiles = vim.v.oldfiles or {}
+    local cwd = current_dir and vim.fn.getcwd() or nil
+
+    for _, filepath in ipairs(oldfiles) do
+      if #items >= (n or 10) then break end
+
+      -- Check if file exists and is readable
+      if vim.fn.filereadable(filepath) == 1 then
+        -- Filter by cwd if needed
+        local include_file = true
+        if cwd_only and cwd then
+          include_file = filepath:find(vim.pesc(cwd), 1, true) == 1
+        end
+
+        if include_file and has_valid_extension(filepath) then
+          local filename = vim.fn.fnamemodify(filepath, ':t')
+          local time_ago = format_relative_time(filepath)
+
+          -- Get top-level directory name (parent of the file)
+          local parent_dir = vim.fn.fnamemodify(filepath, ':h:t')
+
+          -- Build display name: "filename from dir (time ago)"
+          local display_name = filename
+          if parent_dir and parent_dir ~= '' and parent_dir ~= '.' then
+            display_name = string.format('%s from %s', filename, parent_dir)
+          end
+
+          if time_ago ~= '' then
+            display_name = string.format('%s %s', display_name, time_ago)
+          end
+
+          table.insert(items, {
+            name = display_name,
+            action = 'edit ' .. vim.fn.fnameescape(filepath),
+            section = 'Recent files',
+          })
+        end
+      end
+    end
+
     async_data.vim_recent_items = items
 
     -- Refresh starter if it's still open
     if vim.bo.filetype == 'ministarter' then
-      starter.refresh()
+      require('mini.starter').refresh()
+      -- Reapply timestamp highlights after refresh
+      vim.defer_fn(function()
+        local bufnr = vim.api.nvim_get_current_buf()
+        if vim.bo[bufnr].filetype == 'ministarter' then
+          apply_timestamp_highlights(bufnr)
+        end
+      end, 10)
     end
   end)
 end
@@ -233,6 +488,20 @@ end
 -- ============================================
 -- Setup mini.starter
 -- ============================================
+
+-- Autocommand to apply highlights after ministarter opens
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'ministarter',
+  callback = function(args)
+    -- Apply highlights after a short delay to ensure content is rendered
+    vim.defer_fn(function()
+      if vim.api.nvim_buf_is_valid(args.buf) and vim.bo[args.buf].filetype == 'ministarter' then
+        apply_timestamp_highlights(args.buf)
+      end
+    end, 10)
+  end,
+  desc = 'Highlight timestamps in mini.starter',
+})
 
 -- Setup mini.starter - MUST happen before any buffer is created
 local function setup_mini_starter()
