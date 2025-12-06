@@ -4,6 +4,10 @@
 local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 
+-- Disable macro recording (q key) - too easy to hit by accident
+map('n', 'q', '<Nop>', opts)
+map('n', 'Q', '<Nop>', opts)
+
 -- Window navigation - Ctrl + hjkl to move between splits
 map('n', '<C-h>', '<C-w>h', opts)  -- Focus left split
 map('n', '<C-j>', '<C-w>j', opts)  -- Focus bottom split
@@ -93,11 +97,8 @@ map('n', '<leader>yW', yank.yank_workspace_diagnostics, { noremap = true, silent
 map('n', '<leader>y', yank.yank_line_with_context, { noremap = true, silent = true, desc = 'Yank line with context' })
 map('v', '<leader>y', yank.yank_selection_with_context, { noremap = true, silent = true, desc = 'Yank selection with context' })
 
--- Package management - Update plugins
-map('n', '<leader>pu', ':PackUpdate<CR>', { noremap = true, silent = true, desc = 'Update all packages' })
-map('n', '<leader>pU', ':PackUpdateForce<CR>', { noremap = true, silent = true, desc = 'Force update packages' })
-map('n', '<leader>pl', ':PackList<CR>', { noremap = true, silent = true, desc = 'List packages' })
-map('n', '<leader>ps', ':PackStatus<CR>', { noremap = true, silent = true, desc = 'Check package status' })
+-- Package management - lazy.nvim
+map('n', '<leader>pl', ':Lazy<CR>', { noremap = true, silent = true, desc = 'Open Lazy plugin manager' })
 
 -- ============================================================================
 -- PLUGIN & LSP KEYMAPS
@@ -105,23 +106,23 @@ map('n', '<leader>ps', ':PackStatus<CR>', { noremap = true, silent = true, desc 
 -- The following keymaps are configured in their respective plugin/config files.
 -- Use mini.clue to discover them: press <leader>, g, [, or ] to see hints.
 
--- File Explorer & Fuzzy Finding (configured in config/plugins/mini.lua):
---   <leader>e          - Toggle mini.files sidebar explorer
---     g. / <C-h>       - Toggle dotfiles visibility (while in mini.files)
---   <leader>ff         - Find files (mini.pick)
---   <leader>fg         - Live grep search (mini.pick)
---   <leader>fb         - Find in open buffers (mini.pick)
---   <leader>fh         - Help tags search (mini.pick)
---   <leader>ft         - Find Treesitter symbols in file (mini.extra)
---   <leader>fe         - File explorer picker (mini.extra)
---   <leader>fl         - Search buffer lines (mini.extra)
---   <leader>fo         - Open recent files (mini.extra)
---   <leader>fH         - Command history search (mini.extra)
---   <leader>fd         - Show diagnostics (mini.extra)
+-- File Explorer & Fuzzy Finding:
+--   <leader>e          - Open yazi file manager
+--   <leader>ff         - Find files (fzf-lua)
+--   <leader>fg         - Live grep search (fzf-lua)
+--   <leader>fb         - Find in open buffers (fzf-lua)
+--   <leader>fh         - Help tags search (fzf-lua)
+--   <leader>ft         - Find Treesitter symbols in file (fzf-lua)
+--   <leader>fl         - Search buffer lines (fzf-lua)
+--   <leader>fo         - Open recent files (fzf-lua)
+--   <leader>fH         - Command history search (fzf-lua)
+--   <leader>fr         - Resume last picker (fzf-lua)
 
--- Search (configured in config/plugins/mini.lua):
+-- Search (configured in lua/plugins/fzf.lua):
 --   <leader>ss         - Search in files (grep live, interactive)
 --   <leader>sf         - Search pattern in files (grep, upfront pattern)
+--   <leader>sw         - Search word under cursor
+--   <leader>sW         - Search WORD under cursor
 
 -- LSP Navigation & Actions:
 --   Core navigation (configured in config/lsp.lua):
@@ -140,14 +141,8 @@ map('n', '<leader>ps', ':PackStatus<CR>', { noremap = true, silent = true, desc 
 --     <leader>lS       - List workspace symbols (project-wide search)
 --     <leader>ld       - List diagnostics (in mini.lua)
 
--- LSP Pickers (via mini.extra)
-map('n', '<leader>ls', function()
-  require('mini.extra').pickers.lsp({ scope = 'document_symbol' })
-end, { noremap = true, silent = true, desc = 'List document symbols' })
-
-map('n', '<leader>lS', function()
-  require('mini.extra').pickers.lsp({ scope = 'workspace_symbol' })
-end, { noremap = true, silent = true, desc = 'List workspace symbols' })
+-- NOTE: LSP pickers (<leader>ls, <leader>lS) are now handled by fzf-lua
+-- See lua/plugins/fzf.lua for keybindings
 
 -- ============================================================================
 -- DIAGNOSTIC MENU (<leader>d)
@@ -175,14 +170,8 @@ map('n', '<leader>dW', function()
   vim.diagnostic.goto_prev({ severity = vim.diagnostic.severity.WARN })
 end, { noremap = true, silent = true, desc = 'Previous warning' })
 
--- Diagnostic Lists (via mini.extra)
-map('n', '<leader>db', function()
-  require('mini.extra').pickers.diagnostic({ scope = 'current' })
-end, { noremap = true, silent = true, desc = 'List buffer diagnostics' })
-
-map('n', '<leader>dB', function()
-  require('mini.extra').pickers.diagnostic({ scope = 'all' })
-end, { noremap = true, silent = true, desc = 'List workspace diagnostics' })
+-- NOTE: Diagnostic pickers (<leader>db, <leader>dB) are now handled by fzf-lua
+-- See lua/plugins/fzf.lua for keybindings
 
 -- Display diagnostics
 map('n', '<leader>dd', function()

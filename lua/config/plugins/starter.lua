@@ -305,7 +305,7 @@ local function load_git_status_async()
           local summary = 'Git status (' .. table.concat(summary_parts, ', ') .. ')'
           table.insert(items, 1, {
             name = summary,
-            action = 'lua MiniPick.builtin.files({ tool = "git" })',
+            action = 'lua require("fzf-lua").git_status()',
             section = 'Git status',
           })
         end
@@ -609,8 +609,8 @@ local function setup_mini_starter()
       -- Custom builtin actions
       {
         { name = "New buffer", action = "enew", section = "Builtin actions" },
-        { name = "File picker", action = "lua MiniPick.builtin.files()", section = "Builtin actions" },
-        { name = "Search in files", action = "lua MiniPick.builtin.grep_live()", section = "Builtin actions" },
+        { name = "File picker", action = "lua require('fzf-lua').files()", section = "Builtin actions" },
+        { name = "Search in files", action = "lua require('fzf-lua').live_grep()", section = "Builtin actions" },
         { name = "Explorer", action = open_yazi, section = "Builtin actions" },
         { name = "Quit", action = "qall", section = "Builtin actions" },
       },
