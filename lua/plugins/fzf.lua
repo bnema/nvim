@@ -3,6 +3,35 @@ return {
   "ibhagwan/fzf-lua",
   dependencies = { "nvim-tree/nvim-web-devicons" },
   cmd = "FzfLua",
+  init = function()
+    -- If started as `nvim .`, open the files picker immediately
+    vim.api.nvim_create_autocmd("VimEnter", {
+      once = true,
+      callback = function()
+        if vim.fn.argc() ~= 1 then return end
+        local target = vim.fn.argv(0)
+        if not target or vim.fn.isdirectory(target) == 0 then return end
+
+        local cwd = vim.fn.fnamemodify(target, ":p")
+        vim.schedule(function()
+          local lazy = require("lazy")
+          lazy.load({ plugins = { "fzf-lua" } })
+          local ok, fzf = pcall(require, "fzf-lua")
+          if not ok then return end
+
+          pcall(vim.fn.chdir, cwd)
+          local git_status = vim.fn.system({ "git", "-C", cwd, "rev-parse", "--is-inside-work-tree" })
+          local use_git = vim.v.shell_error == 0 and git_status:match("true")
+
+          if use_git and fzf.git_files then
+            fzf.git_files({ cwd = cwd })
+          else
+            fzf.files({ cwd = cwd })
+          end
+        end)
+      end,
+    })
+  end,
   keys = {
     -- File finding (leader + f)
     { "<leader>ff", "<cmd>FzfLua files<cr>", desc = "Find files" },
@@ -100,11 +129,18 @@ return {
 
     -- Grep options
     grep = {
-      prompt = "Grep> ",
-      input_prompt = "Grep Pattern> ",
-      git_icons = true,
-      file_icons = true,
-      color_icons = true,
+      prompt = "Rg> ",
+      input_prompt = "Search> ",
+      git_icons = false,
+      file_icons = false,      -- keep output tighter: path:line:col message
+      color_icons = false,
+      rg_opts = "--column --line-number --no-heading --color=always --smart-case --hidden --max-columns=4096 --glob !.git/* -e",
+      winopts = {
+        preview = {
+          layout = "vertical",
+          vertical = "down:70%", -- give more height to the preview for context
+        },
+      },
     },
 
     -- Buffer options
@@ -132,9 +168,14 @@ return {
     diagnostics = {
       prompt = "Diagnostics> ",
       cwd_only = false,
-      file_icons = true,
+      file_icons = false,      -- keep list compact; path + line is enough
       git_icons = false,
-      diag_icons = true,
+      color_headings = true,   -- severity headings colored
+      diag_icons = true,       -- show severity icons
+      diag_source = true,      -- show source (LSP/linters)
+      diag_code = true,        -- show diagnostic code if available
+      icon_padding = " ",
+      multiline = 2,           -- show message on new line for readability
     },
   },
 }

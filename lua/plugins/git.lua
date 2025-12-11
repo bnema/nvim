@@ -22,7 +22,17 @@ return {
     "lewis6991/gitsigns.nvim",
     event = { "BufReadPre", "BufNewFile" },
     config = function()
-      require("gitsigns").setup()
+      require("gitsigns").setup({
+        on_attach = function(bufnr)
+          local gs = package.loaded.gitsigns
+          local map = function(mode, lhs, rhs, desc)
+            vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, silent = true, desc = desc })
+          end
+
+          -- Toggle inline blame with <leader>gb
+          map("n", "<leader>gb", gs.toggle_current_line_blame, "GitSigns: toggle blame")
+        end,
+      })
     end,
   },
 
@@ -39,5 +49,25 @@ return {
     config = function()
       require("config.plugins.diffview")
     end,
+  },
+
+  -- octo.nvim - GitHub issues/PRs from inside Neovim
+  {
+    "pwntester/octo.nvim",
+    cmd = "Octo",
+    keys = {
+      { "<leader>op", "<cmd>Octo pr list<CR>", desc = "Octo: list PRs" },
+      { "<leader>oi", "<cmd>Octo issue list<CR>", desc = "Octo: list issues" },
+      { "<leader>or", "<cmd>Octo review start<CR>", desc = "Octo: start review" },
+      { "<leader>oR", "<cmd>Octo review resume<CR>", desc = "Octo: resume review" },
+    },
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "ibhagwan/fzf-lua",
+      "nvim-tree/nvim-web-devicons",
+    },
+    opts = {
+      picker = "fzf-lua",
+    },
   },
 }
