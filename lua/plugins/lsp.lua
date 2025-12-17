@@ -29,23 +29,28 @@ return {
     lazy = true,
   },
 
-  -- Treesitter - Syntax highlighting and parsing
+  -- Treesitter - Syntax highlighting and parsing (main branch rewrite)
   {
     "nvim-treesitter/nvim-treesitter",
-    event = { "BufReadPost", "BufNewFile" },
+    branch = "main",
+    lazy = false,
     build = ":TSUpdate",
-    dependencies = {
-      "nvim-treesitter/nvim-treesitter-textobjects",
-    },
     config = function()
       require("config.plugins.treesitter")
     end,
   },
 
-  -- Treesitter textobjects
+  -- Treesitter textobjects (main branch)
   {
     "nvim-treesitter/nvim-treesitter-textobjects",
-    lazy = true,
+    branch = "main",
+    lazy = false,
+    init = function()
+      vim.g.no_plugin_maps = true
+    end,
+    config = function()
+      require("config.plugins.treesitter-textobjects")
+    end,
   },
 
   -- blink.cmp - Modern completion engine
