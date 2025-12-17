@@ -36,19 +36,32 @@ return {
     end,
   },
 
-  -- diffview.nvim - Git diff viewer (for specialized diff viewing)
+  -- vscode-diff.nvim - VSCode-style side-by-side diff
   {
-    "sindrets/diffview.nvim",
-    cmd = { "DiffviewOpen", "DiffviewClose", "DiffviewFileHistory" },
+    "esmuellert/vscode-diff.nvim",
+    dependencies = { "MunifTanjim/nui.nvim" },
+    cmd = "CodeDiff",
     keys = {
-      { "<leader>gv", ":DiffviewOpen<CR>", desc = "Open diffview" },
-      { "<leader>gV", ":DiffviewClose<CR>", desc = "Close diffview" },
-      { "<leader>gf", ":DiffviewFileHistory %<CR>", desc = "File history (current)" },
-      { "<leader>gF", ":DiffviewFileHistory<CR>", desc = "File history (all)" },
+      { "<leader>gv", "<cmd>CodeDiff<CR>", desc = "Open diff view" },
+      { "<leader>gV", "<cmd>CodeDiff file HEAD<CR>", desc = "Diff current file vs HEAD" },
     },
-    config = function()
-      require("config.plugins.diffview")
-    end,
+    opts = {
+      keymaps = {
+        view = {
+          quit = "q",
+          toggle_explorer = "<leader>b",
+          next_hunk = "]c",
+          prev_hunk = "[c",
+          next_file = "]f",
+          prev_file = "[f",
+        },
+        explorer = {
+          select = "<CR>",
+          hover = "K",
+          refresh = "R",
+        },
+      },
+    },
   },
 
   -- octo.nvim - GitHub issues/PRs from inside Neovim
