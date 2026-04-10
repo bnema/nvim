@@ -18,16 +18,96 @@ return {
           lazy.load({ plugins = { "fzf-lua" } })
           local ok, fzf = pcall(require, "fzf-lua")
           if not ok then return end
+          local config = require("fzf-lua.config")
 
           pcall(vim.fn.chdir, cwd)
+
+          -- Replace the startup directory buffer so it does not linger after file selection.
+          local current_buf = vim.api.nvim_get_current_buf()
+          local buf_name = vim.api.nvim_buf_get_name(current_buf)
+          vim.cmd("enew")
+          vim.bo.bufhidden = "wipe"
+          vim.bo.buftype = "nofile"
+          -- Wipe the original directory buffer if it was a directory.
+          if buf_name and vim.fn.isdirectory(buf_name) == 1 then
+            pcall(vim.api.nvim_buf_delete, current_buf, { force = true })
+          end
+
           local git_status = vim.fn.system({ "git", "-C", cwd, "rev-parse", "--is-inside-work-tree" })
           local use_git = vim.v.shell_error == 0 and git_status:match("true")
 
-          if use_git and fzf.git_files then
-            fzf.git_files({ cwd = cwd })
-          else
-            fzf.files({ cwd = cwd })
+          local function sorted_files()
+            local paths = {}
+            local entries = {}
+            local function systemlist(cmd, opts)
+              local result = vim.system(cmd, vim.tbl_extend("keep", opts or {}, { text = true })):wait()
+              if result.code ~= 0 or not result.stdout then
+                return {}
+              end
+              return vim.split(result.stdout, "\n", { trimempty = true })
+            end
+
+            if use_git then
+              paths = systemlist({
+                "git",
+                "-C",
+                cwd,
+                "ls-files",
+                "--cached",
+                "--others",
+                "--exclude-standard",
+              })
+            elseif vim.fn.executable("fd") == 1 then
+              paths = systemlist({
+                "fd",
+                "--type",
+                "f",
+                "--hidden",
+                "--exclude",
+                ".git",
+                ".",
+              }, { cwd = cwd })
+            else
+              paths = systemlist({
+                "find",
+                ".",
+                "-type",
+                "f",
+                "-not",
+                "-path",
+                "*/.git/*",
+                "-printf",
+                "%P\n",
+              }, { cwd = cwd })
+            end
+
+            for _, relpath in ipairs(paths) do
+              if relpath ~= "" then
+                local full_path = vim.fs.joinpath(cwd, relpath)
+                local stat = vim.uv.fs_stat(full_path)
+                table.insert(entries, {
+                  path = relpath,
+                  mtime = stat and stat.mtime and stat.mtime.sec or 0,
+                })
+              end
+            end
+
+            table.sort(entries, function(a, b)
+              if a.mtime == b.mtime then
+                return a.path < b.path
+              end
+              return a.mtime > b.mtime
+            end)
+
+            return vim.tbl_map(function(entry)
+              return entry.path
+            end, entries)
           end
+
+          local opts = config.normalize_opts({ cwd = cwd }, "files")
+          if not opts then return end
+
+          fzf.fzf_exec(sorted_files(), opts)
         end)
       end,
     })
@@ -86,7 +166,7 @@ return {
         layout = "flex",           -- auto-switch based on viewport
         flip_columns = 100,        -- switch to vertical when width < 100 columns
         horizontal = "right:55%",  -- preview on right (reduced to create gap)
-        vertical = "down:40%",     -- preview on bottom when narrow
+        vertical = "down:80%",     -- keep the file list short and give preview most of the height
         -- Builtin previewer options
         title = true,
         title_pos = "center",

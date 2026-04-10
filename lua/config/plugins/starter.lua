@@ -245,7 +245,7 @@ local function load_git_status_async()
         -- Empty stdout means no modified files
         async_data.git_status_items = {}
       else
-        local items = {}
+        local candidates = {}
         local staged_count = 0
         local modified_count = 0
         local untracked_count = 0
@@ -255,8 +255,6 @@ local function load_git_status_async()
             local status_code = line:sub(1, 2)
             local file = line:sub(4)
 
-            local filename = vim.fn.fnamemodify(file, ':t')
-            local parent_dir = vim.fn.fnamemodify(file, ':h:t')
             local status_indicator = ''
             if status_code:match('^[MARC]') then
               status_indicator = '[staged] '
@@ -270,23 +268,45 @@ local function load_git_status_async()
             end
 
             local full_path = git_root .. '/' .. file
-            local display_name = status_indicator .. filename
+            -- Get mtime for sorting
+            local stat = vim.loop.fs_stat(full_path)
+            local mtime = stat and stat.mtime.sec or 0
 
-            if parent_dir and parent_dir ~= '' and parent_dir ~= '.' then
-              display_name = string.format('%s in %s', display_name, parent_dir)
-            end
-
-            local time_ago = format_relative_time(full_path)
-            if time_ago ~= '' then
-              display_name = string.format('%s %s', display_name, time_ago)
-            end
-
-            table.insert(items, {
-              name = display_name,
-              action = 'edit ' .. vim.fn.fnameescape(full_path),
-              section = 'Git status',
+            table.insert(candidates, {
+              file = file,
+              status_indicator = status_indicator,
+              mtime = mtime,
+              full_path = full_path,
             })
           end
+        end
+
+        -- Sort by modification time, newest first
+        table.sort(candidates, function(a, b)
+          return a.mtime > b.mtime
+        end)
+
+        -- Build display items from sorted candidates
+        local items = {}
+        for _, candidate in ipairs(candidates) do
+          local filename = vim.fn.fnamemodify(candidate.file, ':t')
+          local parent_dir = vim.fn.fnamemodify(candidate.file, ':h:t')
+          local display_name = candidate.status_indicator .. filename
+
+          if parent_dir and parent_dir ~= '' and parent_dir ~= '.' then
+            display_name = string.format('%s in %s', display_name, parent_dir)
+          end
+
+          local time_ago = format_relative_time(candidate.full_path)
+          if time_ago ~= '' then
+            display_name = string.format('%s %s', display_name, time_ago)
+          end
+
+          table.insert(items, {
+            name = display_name,
+            action = 'edit ' .. vim.fn.fnameescape(candidate.full_path),
+            section = 'Git status',
+          })
         end
 
         -- Add summary line at the beginning if more than 5 files
@@ -338,7 +358,7 @@ local function load_git_recent_async(n)
   end
 
   vim.system(
-    {'git', 'log', '--pretty=format:%ct', '--name-only', '--diff-filter=ACMRT', '-n', '10'},
+    {'git', 'log', '--pretty=format:%ct', '--name-only', '--diff-filter=ACMRT', '-n', '30'},
     { text = true },
     function(obj)
       vim.schedule(function()
@@ -348,12 +368,10 @@ local function load_git_recent_async(n)
         end
 
         local seen = {}
-        local items = {}
+        local candidates = {}
         local current_commit_time = nil
 
         for line in obj.stdout:gmatch('[^\r\n]+') do
-          if #items >= n then break end
-
           if line and line ~= '' then
             -- Capture commit timestamp rows emitted by --pretty=format:%ct
             local maybe_epoch = tonumber(line)
@@ -365,32 +383,51 @@ local function load_git_recent_async(n)
 
               -- Filter: only show files with valid extensions
               if has_valid_extension(line) then
-                local filename = vim.fn.fnamemodify(line, ':t')
+                -- Get actual file mtime for accurate sorting
+                local stat = vim.loop.fs_stat(full_path)
+                local mtime = stat and stat.mtime.sec or current_commit_time or 0
 
-                -- Get parent directory name
-                local parent_dir = vim.fn.fnamemodify(line, ':h:t')
-
-                -- Get timestamp for the file
-                local time_ago = format_relative_time(full_path, current_commit_time)
-
-                -- Build display name: "filename in dir (time ago)"
-                local display_name = filename
-                if parent_dir and parent_dir ~= '' and parent_dir ~= '.' then
-                  display_name = string.format('%s in %s', filename, parent_dir)
-                end
-
-                if time_ago ~= '' then
-                  display_name = string.format('%s %s', display_name, time_ago)
-                end
-
-                table.insert(items, {
-                  name = display_name,
-                  action = 'edit ' .. vim.fn.fnameescape(full_path),
-                  section = 'Git recent (modified)',
+                table.insert(candidates, {
+                  file = line,
+                  full_path = full_path,
+                  mtime = mtime,
                 })
               end
             end
           end
+        end
+
+        -- Sort by actual file modification time, newest first
+        table.sort(candidates, function(a, b)
+          return a.mtime > b.mtime
+        end)
+
+        -- Build items from sorted candidates, limited to n
+        local items = {}
+        for _, candidate in ipairs(candidates) do
+          if #items >= n then break end
+
+          local filename = vim.fn.fnamemodify(candidate.file, ':t')
+          local parent_dir = vim.fn.fnamemodify(candidate.file, ':h:t')
+
+          -- Get timestamp for the file (uses actual mtime now)
+          local time_ago = format_relative_time(candidate.full_path)
+
+          -- Build display name: "filename in dir (time ago)"
+          local display_name = filename
+          if parent_dir and parent_dir ~= '' and parent_dir ~= '.' then
+            display_name = string.format('%s in %s', filename, parent_dir)
+          end
+
+          if time_ago ~= '' then
+            display_name = string.format('%s %s', display_name, time_ago)
+          end
+
+          table.insert(items, {
+            name = display_name,
+            action = 'edit ' .. vim.fn.fnameescape(candidate.full_path),
+            section = 'Git recent (modified)',
+          })
         end
 
         async_data.git_recent_items = items
@@ -414,15 +451,13 @@ end
 -- Load vim recent files asynchronously (custom implementation with timestamps)
 local function load_vim_recent_async(n, cwd_only, current_dir)
   vim.schedule(function()
-    local items = {}
+    local candidates = {}
 
     -- Get recent files from oldfiles
     local oldfiles = vim.v.oldfiles or {}
     local cwd = current_dir and vim.fn.getcwd() or nil
 
     for _, filepath in ipairs(oldfiles) do
-      if #items >= (n or 10) then break end
-
       -- Check if file exists and is readable
       if vim.fn.filereadable(filepath) == 1 then
         -- Filter by cwd if needed
@@ -432,29 +467,47 @@ local function load_vim_recent_async(n, cwd_only, current_dir)
         end
 
         if include_file and has_valid_extension(filepath) then
-          local filename = vim.fn.fnamemodify(filepath, ':t')
-          local time_ago = format_relative_time(filepath)
-
-          -- Get top-level directory name (parent of the file)
-          local parent_dir = vim.fn.fnamemodify(filepath, ':h:t')
-
-          -- Build display name: "filename from dir (time ago)"
-          local display_name = filename
-          if parent_dir and parent_dir ~= '' and parent_dir ~= '.' then
-            display_name = string.format('%s from %s', filename, parent_dir)
-          end
-
-          if time_ago ~= '' then
-            display_name = string.format('%s %s', display_name, time_ago)
-          end
-
-          table.insert(items, {
-            name = display_name,
-            action = 'edit ' .. vim.fn.fnameescape(filepath),
-            section = 'Recent files',
-          })
+          -- Get mtime for sorting
+          local abs_path = filepath:match('^/') and filepath or vim.fn.fnamemodify(filepath, ':p')
+          local stat = vim.loop.fs_stat(abs_path)
+          local mtime = stat and stat.mtime.sec or 0
+          table.insert(candidates, { path = filepath, mtime = mtime })
         end
       end
+    end
+
+    -- Sort by modification time, newest first
+    table.sort(candidates, function(a, b)
+      return a.mtime > b.mtime
+    end)
+
+    -- Build items from sorted candidates, limited to n
+    local items = {}
+    for i, candidate in ipairs(candidates) do
+      if #items >= (n or 10) then break end
+
+      local filepath = candidate.path
+      local filename = vim.fn.fnamemodify(filepath, ':t')
+      local time_ago = format_relative_time(filepath)
+
+      -- Get top-level directory name (parent of the file)
+      local parent_dir = vim.fn.fnamemodify(filepath, ':h:t')
+
+      -- Build display name: "filename from dir (time ago)"
+      local display_name = filename
+      if parent_dir and parent_dir ~= '' and parent_dir ~= '.' then
+        display_name = string.format('%s from %s', filename, parent_dir)
+      end
+
+      if time_ago ~= '' then
+        display_name = string.format('%s %s', display_name, time_ago)
+      end
+
+      table.insert(items, {
+        name = display_name,
+        action = 'edit ' .. vim.fn.fnameescape(filepath),
+        section = 'Recent files',
+      })
     end
 
     async_data.vim_recent_items = items
