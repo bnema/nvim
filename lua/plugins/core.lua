@@ -7,6 +7,17 @@ return {
     priority = 1000,
     config = function()
       vim.cmd.colorscheme("despair")
+
+      -- Inline completion hint visibility (Copilot native LSP)
+      local function set_compl_hl()
+        vim.api.nvim_set_hl(0, 'ComplHint', { fg = '#6c7a89', bg = 'NONE' })
+        vim.api.nvim_set_hl(0, 'ComplHintMore', { fg = '#5d6d7e', bg = 'NONE' })
+      end
+      set_compl_hl()
+      vim.api.nvim_create_autocmd('ColorScheme', {
+        pattern = 'despair',
+        callback = set_compl_hl,
+      })
     end,
   },
 

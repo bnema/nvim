@@ -6,6 +6,40 @@
 
 local lsp = vim.lsp
 
+-- ============================================
+-- Native GitHub Copilot LSP (Neovim 0.12+)
+-- ============================================
+-- Copilot uses Neovim's built-in inline completion LSP support.
+-- The copilot-language-server binary must be installed separately:
+--   npm install -g @github/copilot-language-server
+-- Authentication: Run :LspCopilotSignIn if needed
+
+-- Track copilot status for optional statusline integration
+local copilot_status = {} ---@type table<number, "ok" | "error" | "pending">
+
+-- Get current copilot status for statusline integration (called by mini.statusline or manually)
+function _G.get_copilot_status()
+  local clients = vim.lsp.get_clients({ name = "copilot", bufnr = 0 })
+  return #clients > 0 and copilot_status[clients[1].id] or nil
+end
+
+-- Configure copilot LSP with status tracking
+vim.lsp.config('copilot', {
+  handlers = {
+    -- Track copilot status changes (authentication, busy state, errors)
+    didChangeStatus = function(err, res, ctx)
+      if err then return end
+      copilot_status[ctx.client_id] = res.kind ~= "Normal" and "error" or res.busy and "pending" or "ok"
+      if res.status == "Error" then
+        vim.notify('Copilot authentication required. Run: :LspCopilotSignIn', vim.log.levels.ERROR)
+      end
+    end,
+  },
+})
+
+-- Enable copilot LSP client
+vim.lsp.enable('copilot')
+
 -- Build LSP capabilities from blink.cmp
 -- blink.cmp is loaded before this file in native-packages.lua
 local capabilities = _G.blink_cmp_capabilities or lsp.protocol.make_client_capabilities()
@@ -31,6 +65,12 @@ local function on_attach(client, bufnr)
   -- Enable inline completion (Copilot and other inline completion providers)
   if client.server_capabilities.inlineCompletionProvider then
     vim.lsp.inline_completion.enable(true, { bufnr = bufnr })
+
+    -- Insert-mode <Tab> to accept inline completion
+    vim.keymap.set('i', '<Tab>', function()
+      if vim.lsp.inline_completion.get() then return '' end
+      return '<Tab>'
+    end, { buffer = bufnr, expr = true, silent = true, desc = 'Accept inline completion' })
   end
 
   -- Refresh mini.clue to pick up LSP keymaps

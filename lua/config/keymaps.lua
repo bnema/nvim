@@ -321,8 +321,7 @@ map('n', '<leader>lh', function()
 end, { noremap = true, silent = true, desc = 'Toggle parameter hints (Go)' })
 
 -- Copilot AI Completion (configured in config/lsp.lua):
---   <M-]>              - Accept next inline suggestion
---   <M-[>              - Accept previous inline suggestion
+--   <Tab> (insert)     - Accept inline suggestion
 
 -- Text Editing & Manipulation (mini.surround, mini.comment):
 --   sa                 - Add surround (sa + motion + char)

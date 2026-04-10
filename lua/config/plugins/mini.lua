@@ -8,8 +8,42 @@
 -- mini.icons - File icons (required by statusline)
 require('mini.icons').setup()
 
+local COPILOT_ICON = '\u{f113}'
+
 -- mini.statusline - Statusline
-require('mini.statusline').setup()
+require('mini.statusline').setup({
+  content = {
+    active = function()
+      local mode, mode_hl = MiniStatusline.section_mode({ trunc_width = 120 })
+      local git = MiniStatusline.section_git({ trunc_width = 40 })
+      local diff = MiniStatusline.section_diff({ trunc_width = 75 })
+      local diagnostics = MiniStatusline.section_diagnostics({ trunc_width = 75 })
+      local lsp = MiniStatusline.section_lsp({ trunc_width = 75 })
+      local filename = MiniStatusline.section_filename({ trunc_width = 140 })
+      local fileinfo = MiniStatusline.section_fileinfo({ trunc_width = 120 })
+      local location = MiniStatusline.section_location({ trunc_width = 75 })
+      local search = MiniStatusline.section_searchcount({ trunc_width = 75 })
+
+      local copilot_map = {
+        ok = COPILOT_ICON,
+        pending = COPILOT_ICON .. '...',
+        error = COPILOT_ICON .. '!',
+      }
+      local copilot_status = type(_G.get_copilot_status) == 'function' and _G.get_copilot_status() or nil
+      local copilot = copilot_map[copilot_status]
+
+      return MiniStatusline.combine_groups({
+        { hl = mode_hl, strings = { mode } },
+        { hl = 'MiniStatuslineDevinfo', strings = { git, diff, diagnostics, lsp, copilot } },
+        '%<',
+        { hl = 'MiniStatuslineFilename', strings = { filename } },
+        '%=',
+        { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } },
+        { hl = mode_hl, strings = { search, location } },
+      })
+    end,
+  },
+})
 
 -- mini.tabline - Buffer tabs at the top
 require('mini.tabline').setup()

@@ -52,7 +52,7 @@ nvim
 | Key | Action |
 |-----|--------|
 | `<leader>e` | Toggle file explorer (yazi) |
-| `<leader>ff` | Find files (mini.pick) |
+| `<leader>ff` | Find files (fzf-lua) |
 | `<leader>fg` | Live grep |
 | `<leader>w` / `<leader>q` | Save / Quit |
 
@@ -78,7 +78,6 @@ Use `:help keymaps.lua` for the complete list or press `<leader>` to see hints w
 │   ├── format.lua              # Auto-formatting configuration
 │   └── plugins/
 │       ├── mini.lua            # mini.nvim modules config
-│       ├── copilot.lua         # GitHub Copilot native inline completion
 │       └── yazi.lua            # File manager integration
 ```
 
@@ -92,7 +91,7 @@ Edit files in `lua/config/` to customize behavior:
 - **format.lua** - Auto-formatting on save configuration
 - **keymaps.lua** - Global keybindings
 - **plugins/mini.lua** - mini.nvim module configuration
-- **plugins/copilot.lua** - GitHub Copilot native inline completion
+
 - **plugins/yazi.lua** - Yazi file manager integration
 
 ## Notes
@@ -100,6 +99,7 @@ Edit files in `lua/config/` to customize behavior:
 - Plugin installation is automatic via Neovim's native `vim.pack` system
 - Plugins are stored in `~/.local/share/nvim/site/pack/`
 - Uses Neovim's native LSP and inline completion (no external wrappers)
+- Native Copilot requires the `copilot-language-server` binary to be installed separately
 - Formatting is LSP-based (no external formatters like conform.nvim needed)
 
 ## License
