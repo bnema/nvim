@@ -14,6 +14,10 @@ return {
         -- lazygit configuration
         -- theme will be auto-configured based on colorscheme
       },
+      explorer = {
+        -- Keep explorer opt-in via keymaps; do not auto-open on directory start.
+        replace_netrw = false,
+      },
     },
   },
 

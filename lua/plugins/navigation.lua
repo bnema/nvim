@@ -15,15 +15,16 @@ return {
     cmd = "Yazi",
     keys = {
       {
-        "<leader>e",
+        "<leader>fy",
         function()
           require("yazi").yazi()
         end,
-        desc = "Explorer (yazi)",
+        desc = "Yazi file manager",
       },
     },
     init = function()
-      -- Mark netrw as loaded so it's not loaded at all
+      -- Keep netrw disabled so directory startup does not leave a netrw buffer behind.
+      vim.g.loaded_netrw = 1
       vim.g.loaded_netrwPlugin = 1
     end,
     config = function()

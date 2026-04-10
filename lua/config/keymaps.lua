@@ -64,10 +64,13 @@ map('n', '<leader>qq', ':quit!<CR>', { noremap = true, silent = true, desc = 'Qu
 map('n', '<leader>qb', ':bdelete!<CR>', { noremap = true, silent = true, desc = 'Close buffer!' })
 map('n', '<leader>qw', ':wq<CR>', { noremap = true, silent = true, desc = 'Write & quit' })
 
--- File Explorer - Yazi terminal file manager
+-- File Explorer - Snacks explorer (LazyVim style)
 map('n', '<leader>e', function()
-  require("yazi").yazi()
-end, { noremap = true, silent = true, desc = 'Explorer (yazi)' })
+  Snacks.explorer()
+end, { noremap = true, silent = true, desc = 'Explorer (root)' })
+map('n', '<leader>E', function()
+  Snacks.explorer.open({ cwd = vim.fn.getcwd() })
+end, { noremap = true, silent = true, desc = 'Explorer (cwd)' })
 
 -- Split window management - Create and close splits
 map('n', '<leader>|', ':vsplit<CR>', { noremap = true, silent = true, desc = 'Split vertically' })
@@ -107,7 +110,8 @@ map('n', '<leader>pl', ':Lazy<CR>', { noremap = true, silent = true, desc = 'Ope
 -- Use mini.clue to discover them: press <leader>, g, [, or ] to see hints.
 
 -- File Explorer & Fuzzy Finding:
---   <leader>e          - Open yazi file manager
+--   <leader>e          - Open snacks explorer (project root)
+--   <leader>E          - Open snacks explorer (cwd)
 --   <leader>ff         - Find files (fzf-lua)
 --   <leader>fg         - Live grep search (fzf-lua)
 --   <leader>fb         - Find in open buffers (fzf-lua)

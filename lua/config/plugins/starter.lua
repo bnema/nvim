@@ -54,9 +54,9 @@ local function get_neovim_version()
   return version_str
 end
 
--- Helper function to open yazi (replaces MiniFiles)
-local function open_yazi()
-  require('yazi').yazi()
+-- Helper function to open snacks explorer
+local function open_explorer()
+  Snacks.explorer()
 end
 
 -- Convert a second-difference into a human string
@@ -664,7 +664,7 @@ local function setup_mini_starter()
         { name = "New buffer", action = "enew", section = "Builtin actions" },
         { name = "File picker", action = "lua require('fzf-lua').files()", section = "Builtin actions" },
         { name = "Search in files", action = "lua require('fzf-lua').live_grep()", section = "Builtin actions" },
-        { name = "Explorer", action = open_yazi, section = "Builtin actions" },
+        { name = "Explorer", action = open_explorer, section = "Builtin actions" },
         { name = "Quit", action = "qall", section = "Builtin actions" },
       },
       -- Git status files (staged/unstaged) - shown first if any

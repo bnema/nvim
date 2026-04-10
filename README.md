@@ -51,7 +51,9 @@ nvim
 ### File Operations
 | Key | Action |
 |-----|--------|
-| `<leader>e` | Toggle file explorer (yazi) |
+| `<leader>e` | Open file explorer (root) |
+| `<leader>E` | Open file explorer (cwd) |
+| `<leader>fy` | Open Yazi file manager |
 | `<leader>ff` | Find files (fzf-lua) |
 | `<leader>fg` | Live grep |
 | `<leader>w` / `<leader>q` | Save / Quit |
