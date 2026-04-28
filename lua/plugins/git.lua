@@ -47,7 +47,14 @@ return {
     keys = {
       { "<leader>gv", "<cmd>CodeDiff<CR>", desc = "Open diff view" },
       { "<leader>gV", "<cmd>CodeDiff file HEAD<CR>", desc = "Diff current file vs HEAD" },
-      { "<leader>gD", "<cmd>CodeDiff main...<CR>", desc = "Diff branch vs main (PR view)" },
+      { "<leader>gD", function()
+        local handle = io.popen("git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null")
+        local ref = handle and handle:read("*a") or ""
+        if handle then handle:close() end
+        local base = vim.trim(ref):gsub("^refs/remotes/origin/", "")
+        if base == "" then base = "main" end
+        vim.cmd("CodeDiff " .. base .. "...")
+      end, desc = "Diff branch vs base (PR view)" },
     },
     opts = {
       keymaps = {
