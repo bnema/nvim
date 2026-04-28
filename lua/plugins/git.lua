@@ -40,10 +40,9 @@ return {
     end,
   },
 
-  -- vscode-diff.nvim - VSCode-style side-by-side diff
+  -- codediff.nvim - VSCode-style side-by-side diff (renamed from vscode-diff.nvim)
   {
-    "esmuellert/vscode-diff.nvim",
-    dependencies = { "MunifTanjim/nui.nvim" },
+    "esmuellert/codediff.nvim",
     cmd = "CodeDiff",
     keys = {
       { "<leader>gv", "<cmd>CodeDiff<CR>", desc = "Open diff view" },
@@ -66,6 +65,28 @@ return {
         },
       },
     },
+    config = function(_, opts)
+      require("codediff").setup(opts)
+
+      -- Auto-switch to inline layout when window is too narrow for side-by-side
+      -- Toggle back with 't' if you want to force side-by-side
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "CodeDiffOpen",
+        group = vim.api.nvim_create_augroup("CodediffAutoLayout", { clear = true }),
+        callback = function(ev)
+          local min_width = 140
+          if vim.o.columns < min_width then
+            local tabpage = ev.data.tabpage
+            if tabpage then
+              local view = require("codediff.ui.view")
+              if view.get_current_layout(tabpage) == "side-by-side" then
+                view.toggle_layout(tabpage)
+              end
+            end
+          end
+        end,
+      })
+    end,
   },
 
   -- octo.nvim - GitHub issues/PRs from inside Neovim
