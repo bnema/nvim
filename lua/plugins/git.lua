@@ -47,6 +47,7 @@ return {
     keys = {
       { "<leader>gv", "<cmd>CodeDiff<CR>", desc = "Open diff view" },
       { "<leader>gV", "<cmd>CodeDiff file HEAD<CR>", desc = "Diff current file vs HEAD" },
+      { "<leader>gD", "<cmd>CodeDiff main...<CR>", desc = "Diff branch vs main (PR view)" },
     },
     opts = {
       keymaps = {
