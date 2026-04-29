@@ -4,3 +4,4 @@ test.sh
 nvim
 .nvimlog
 nvim-pack-lock.json
+lazy-lock.json
