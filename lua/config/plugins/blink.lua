@@ -1,7 +1,9 @@
 -- blink.cmp - Performant, batteries-included completion for Neovim
 -- https://github.com/saghen/blink.cmp
 
-require('blink.cmp').setup({
+local cmp = require('blink.cmp')
+
+cmp.setup({
   -- Keymap preset: 'default' uses C-y to accept (similar to built-in completion)
   -- Other options: 'super-tab' (Tab to accept), 'enter' (Enter to accept), 'none'
   keymap = { preset = 'default' },
@@ -119,7 +121,9 @@ require('blink.cmp').setup({
 
     -- Trigger configuration
     trigger = {
-      prefetch_on_insert = true,
+      -- v2 marks prefetching as experimental/buggy; keep insert smooth and
+      -- trigger completions from typed keywords/trigger characters instead.
+      prefetch_on_insert = false,
       show_in_snippet = true,
       show_on_keyword = true,
       show_on_trigger_character = true,
@@ -150,18 +154,15 @@ require('blink.cmp').setup({
 
   -- Snippets configuration using Neovim's native snippet support
   snippets = {
-    expand = function(snippet) vim.snippet.expand(snippet) end,
-    active = function(filter) return vim.snippet.active(filter) end,
-    jump = function(direction) vim.snippet.jump(direction) end,
+    preset = 'default',
   },
 
-  -- Fuzzy matching - using Lua implementation
-  -- Native package management doesn't support automatic binary downloads
-  -- Lua implementation is still fast and requires no external dependencies
+  -- Fuzzy matching - v2 builds the Rust matcher locally and falls back to Lua
+  -- with a warning if the native library is unavailable.
   fuzzy = {
-    implementation = "lua",
+    implementation = 'prefer_rust_with_warning',
   },
 })
 
 -- Store capabilities globally so LSP configs can access them
-_G.blink_cmp_capabilities = require('blink.cmp').get_lsp_capabilities()
+_G.blink_cmp_capabilities = cmp.get_lsp_capabilities()

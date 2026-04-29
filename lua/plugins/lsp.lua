@@ -58,8 +58,12 @@ return {
     "saghen/blink.cmp",
     event = "InsertEnter",
     dependencies = {
+      "saghen/blink.lib",
       "rafamadriz/friendly-snippets",
     },
+    build = function()
+      require("blink.cmp").build():wait(60000)
+    end,
     config = function()
       require("config.plugins.blink")
     end,
