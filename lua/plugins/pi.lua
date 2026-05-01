@@ -1,18 +1,29 @@
--- pi-nvim - Bridge between pi coding agent and Neovim
--- Run pi in one terminal, Neovim in another — send context from editor
+-- pi-nvim-bridge - Automatic context bridge between pi coding agent and Neovim
 return {
   {
-    "carderne/pi-nvim",
-    cmd = { "Pi", "PiSend", "PiSendFile", "PiSendSelection", "PiSendBuffer", "PiPing", "PiSessions" },
+    "bnema/pi-nvim-bridge",
+    cmd = {
+      "PiNvimBridgeSync",
+      "PiNvimBridgePrompt",
+      "PiNvimBridgeSteer",
+      "PiNvimBridgeFollowUp",
+      "PiNvimBridgePing",
+      "PiNvimBridgeSessions",
+    },
     keys = {
-      { "<leader>a",  "<cmd>Pi<CR>",              mode = { "n", "v" }, desc = "Pi: send to pi" },
-      { "<leader>ap", "<cmd>PiSend<CR>",          desc = "Pi: prompt" },
-      { "<leader>af", "<cmd>PiSendFile<CR>",      desc = "Pi: file + prompt" },
-      { "<leader>as", "<cmd>PiSendSelection<CR>", mode = "v", desc = "Pi: selection + prompt" },
-      { "<leader>ab", "<cmd>PiSendBuffer<CR>",    desc = "Pi: buffer + prompt" },
+      { "<leader>p",  "<cmd>PiNvimBridgePrompt<CR>",   mode = { "n", "v" }, desc = "Pi: prompt with editor context" },
+      { "<leader>pp", "<cmd>PiNvimBridgePrompt<CR>",   mode = { "n", "v" }, desc = "Pi: prompt" },
+      { "<leader>ps", "<cmd>PiNvimBridgeSteer<CR>",    mode = { "n", "v" }, desc = "Pi: steer" },
+      { "<leader>pf", "<cmd>PiNvimBridgeFollowUp<CR>", mode = { "n", "v" }, desc = "Pi: follow-up" },
+      { "<leader>pc", "<cmd>PiNvimBridgeSync<CR>",     mode = { "n", "v" }, desc = "Pi: sync editor context" },
+      { "<leader>pi", "<cmd>PiNvimBridgePing<CR>",     desc = "Pi: ping bridge" },
+      { "<leader>pS", "<cmd>PiNvimBridgeSessions<CR>", desc = "Pi: select session" },
     },
     config = function()
-      require("pi-nvim").setup()
+      require("pi-nvim-bridge").setup({
+        default_streaming_behavior = "steer",
+        default_keymaps = false,
+      })
     end,
   },
 }

@@ -143,7 +143,9 @@ return {
     { "<leader>gs", "<cmd>FzfLua git_status<cr>", desc = "Git status" },
     { "<leader>gB", "<cmd>FzfLua git_branches<cr>", desc = "Git branches" },
   },
-  opts = {
+  opts = function()
+    local actions = require("fzf-lua.actions")
+    return {
     -- Global options
     global_resume = true,
     global_resume_query = true,
@@ -205,6 +207,11 @@ return {
       git_icons = true,
       file_icons = true,
       color_icons = true,
+      no_ignore = false,
+      toggle_ignore_flag = "--no-ignore",
+      actions = {
+        ["ctrl-h"] = actions.toggle_ignore,
+      },
     },
 
     -- Grep options
@@ -257,5 +264,6 @@ return {
       icon_padding = " ",
       multiline = 2,           -- show message on new line for readability
     },
-  },
+    }
+  end,
 }

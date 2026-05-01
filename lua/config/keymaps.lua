@@ -100,9 +100,6 @@ map('n', '<leader>yW', yank.yank_workspace_diagnostics, { noremap = true, silent
 map('n', '<leader>y', yank.yank_line_with_context, { noremap = true, silent = true, desc = 'Yank line with context' })
 map('v', '<leader>y', yank.yank_selection_with_context, { noremap = true, silent = true, desc = 'Yank selection with context' })
 
--- Package management - lazy.nvim
-map('n', '<leader>pl', ':Lazy<CR>', { noremap = true, silent = true, desc = 'Open Lazy plugin manager' })
-
 -- ============================================================================
 -- PLUGIN & LSP KEYMAPS
 -- ============================================================================
