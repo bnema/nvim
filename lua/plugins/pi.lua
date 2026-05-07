@@ -2,6 +2,7 @@
 return {
   {
     "bnema/pi-nvim-bridge",
+    event = { "BufReadPost", "BufNewFile" },
     cmd = {
       "PiNvimBridgeSync",
       "PiNvimBridgePrompt",
