@@ -61,13 +61,7 @@ end
 
 -- Helper function to open CodeDiff against the repository base branch
 local function open_codediff_pr_view()
-  local handle = io.popen('git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null')
-  local ref = handle and handle:read('*a') or ''
-  if handle then handle:close() end
-
-  local base = vim.trim(ref):gsub('^refs/remotes/origin/', '')
-  if base == '' then base = 'main' end
-
+  local base = require('config.git').get_origin_base_branch()
   vim.cmd('CodeDiff ' .. base .. '...')
 end
 

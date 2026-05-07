@@ -50,16 +50,23 @@ function M.apply(theme)
   theme = theme or vim.g.nvim_theme or vim.env.NVIM_THEME or M.default
 
   local ok, err = pcall(vim.cmd.colorscheme, theme)
-  if not ok then
-    local fallback = M.default
-    if theme == fallback then fallback = 'habamax' end
-    notify(('Failed to load colorscheme %q: %s. Falling back to %q.'):format(theme, err, fallback), vim.log.levels.WARN)
-    pcall(vim.cmd.colorscheme, fallback)
-    theme = fallback
+  if ok then
+    vim.g.nvim_theme = theme
+    return
   end
 
-  vim.g.nvim_theme = theme
-  M.apply_overrides()
+  local fallback = M.default
+  if theme == fallback then fallback = 'habamax' end
+
+  notify(('Failed to load colorscheme %q: %s. Falling back to %q.'):format(theme, err, fallback), vim.log.levels.WARN)
+
+  local ok2, err2 = pcall(vim.cmd.colorscheme, fallback)
+  if ok2 then
+    vim.g.nvim_theme = fallback
+    return
+  end
+
+  notify(('Failed to load fallback colorscheme %q: %s.'):format(fallback, err2), vim.log.levels.ERROR)
 end
 
 local function current_index()
@@ -82,12 +89,12 @@ function M.prev()
 end
 
 function M.setup()
-  M.apply()
-
   vim.api.nvim_create_autocmd('ColorScheme', {
     group = vim.api.nvim_create_augroup('ThemeOverrides', { clear = true }),
     callback = M.apply_overrides,
   })
+
+  M.apply()
 
   vim.api.nvim_create_user_command('Theme', function(opts)
     if opts.args == '' then
