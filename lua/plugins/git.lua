@@ -57,10 +57,18 @@ return {
       end, desc = "Diff branch vs base (PR view)" },
     },
     opts = {
+      highlights = require("config.theme").codediff_highlights,
+      diff = {
+        layout = "inline",
+      },
+      explorer = {
+        width = 25,
+      },
       keymaps = {
         view = {
           quit = "q",
-          toggle_explorer = "<leader>b",
+          toggle_explorer = "<leader>e",
+          focus_explorer = "<leader>E",
           next_hunk = "]c",
           prev_hunk = "[c",
           next_file = "]f",

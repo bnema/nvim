@@ -59,6 +59,18 @@ local function open_explorer()
   Snacks.explorer()
 end
 
+-- Helper function to open CodeDiff against the repository base branch
+local function open_codediff_pr_view()
+  local handle = io.popen('git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null')
+  local ref = handle and handle:read('*a') or ''
+  if handle then handle:close() end
+
+  local base = vim.trim(ref):gsub('^refs/remotes/origin/', '')
+  if base == '' then base = 'main' end
+
+  vim.cmd('CodeDiff ' .. base .. '...')
+end
+
 -- Convert a second-difference into a human string
 local function format_relative_diff(diff)
   if diff < 0 then diff = 0 end
@@ -665,6 +677,7 @@ local function setup_mini_starter()
         { name = "File picker", action = "lua require('fzf-lua').files()", section = "Builtin actions" },
         { name = "Search in files", action = "lua require('fzf-lua').live_grep()", section = "Builtin actions" },
         { name = "Explorer", action = open_explorer, section = "Builtin actions" },
+        { name = "CodeDiff PR view", action = open_codediff_pr_view, section = "Builtin actions" },
         { name = "Quit", action = "qall", section = "Builtin actions" },
       },
       -- Git status files (staged/unstaged) - shown first if any

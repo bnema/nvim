@@ -53,6 +53,7 @@ miniclue.setup({
     { mode = 'n', keys = '<Leader>q', desc = 'Quit' },
     { mode = 'n', keys = '<Leader>s', desc = 'Search' },
     { mode = 'n', keys = '<Leader>t', desc = 'Tabs' },
+    { mode = 'n', keys = '<Leader>u', desc = 'UI' },
     { mode = 'n', keys = '<Leader>w', desc = 'Save' },
     { mode = 'n', keys = '<Leader>y', desc = 'Yank' },
     { mode = 'n', keys = '<Leader>|', desc = 'Split vertically' },
