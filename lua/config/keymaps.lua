@@ -56,6 +56,10 @@ map('i', '<A-k>', '<Esc>:m .-2<CR>==gi', opts)    -- Move line up (insert)
 map('v', '<A-j>', ':m .+1<CR>gv=gv', opts)        -- Move lines down (visual)
 map('v', '<A-k>', ':m .-2<CR>gv=gv', opts)        -- Move lines up (visual)
 
+-- Theme switching
+map('n', '<leader>ut', function() require('config.theme').next() end, { noremap = true, silent = true, desc = 'Next theme' })
+map('n', '<leader>uT', function() require('config.theme').prev() end, { noremap = true, silent = true, desc = 'Previous theme' })
+
 -- File operations - Save, quit, and combined
 map('n', '<leader>w', ':write<CR>', { noremap = true, silent = true, desc = 'Save file' })
 map('n', '<leader>q', ':quit<CR>', { noremap = true, silent = true, desc = 'Quit' })

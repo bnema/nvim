@@ -48,19 +48,23 @@ return {
       { "<leader>gv", "<cmd>CodeDiff<CR>", desc = "Open diff view" },
       { "<leader>gV", "<cmd>CodeDiff file HEAD<CR>", desc = "Diff current file vs HEAD" },
       { "<leader>gD", function()
-        local handle = io.popen("git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null")
-        local ref = handle and handle:read("*a") or ""
-        if handle then handle:close() end
-        local base = vim.trim(ref):gsub("^refs/remotes/origin/", "")
-        if base == "" then base = "main" end
+        local base = require("config.git").get_origin_base_branch()
         vim.cmd("CodeDiff " .. base .. "...")
       end, desc = "Diff branch vs base (PR view)" },
     },
     opts = {
+      highlights = require("config.theme").codediff_highlights,
+      diff = {
+        layout = "inline",
+      },
+      explorer = {
+        width = 25,
+      },
       keymaps = {
         view = {
           quit = "q",
-          toggle_explorer = "<leader>b",
+          toggle_explorer = "<leader>e",
+          focus_explorer = "<leader>E",
           next_hunk = "]c",
           prev_hunk = "[c",
           next_file = "]f",
@@ -75,25 +79,6 @@ return {
     },
     config = function(_, opts)
       require("codediff").setup(opts)
-
-      -- Auto-switch to inline layout when window is too narrow for side-by-side
-      -- Toggle back with 't' if you want to force side-by-side
-      vim.api.nvim_create_autocmd("User", {
-        pattern = "CodeDiffOpen",
-        group = vim.api.nvim_create_augroup("CodediffAutoLayout", { clear = true }),
-        callback = function(ev)
-          local min_width = 140
-          if vim.o.columns < min_width then
-            local tabpage = ev.data.tabpage
-            if tabpage then
-              local view = require("codediff.ui.view")
-              if view.get_current_layout(tabpage) == "side-by-side" then
-                view.toggle_layout(tabpage)
-              end
-            end
-          end
-        end,
-      })
     end,
   },
 

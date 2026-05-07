@@ -1,24 +1,34 @@
--- Core plugins: dependencies, icons, mini.nvim, colorscheme
+-- Core plugins: dependencies, icons, mini.nvim, colorschemes
 return {
-  -- Colorscheme (load first, highest priority)
+  -- Colorschemes (lazy-loaded on demand by :colorscheme / :Theme)
+  {
+    "Mofiqul/dracula.nvim",
+    lazy = true,
+    opts = {
+      transparent_bg = false,
+      show_end_of_buffer = false,
+    },
+    config = function(_, opts)
+      require("dracula").setup(opts)
+    end,
+  },
   {
     "bnema/despair-theme",
-    lazy = false,
-    priority = 1000,
-    config = function()
-      vim.cmd.colorscheme("despair")
-
-      -- Inline completion hint visibility (Copilot native LSP)
-      local function set_compl_hl()
-        vim.api.nvim_set_hl(0, 'ComplHint', { fg = '#6c7a89', bg = 'NONE' })
-        vim.api.nvim_set_hl(0, 'ComplHintMore', { fg = '#5d6d7e', bg = 'NONE' })
-      end
-      set_compl_hl()
-      vim.api.nvim_create_autocmd('ColorScheme', {
-        pattern = 'despair',
-        callback = set_compl_hl,
-      })
-    end,
+    lazy = true,
+  },
+  {
+    "folke/tokyonight.nvim",
+    lazy = true,
+  },
+  {
+    "catppuccin/nvim",
+    name = "catppuccin",
+    lazy = true,
+  },
+  {
+    "rose-pine/neovim",
+    name = "rose-pine",
+    lazy = true,
   },
 
   -- Plenary - Lua utilities (loaded as dependency)
