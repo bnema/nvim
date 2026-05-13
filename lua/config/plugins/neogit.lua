@@ -57,7 +57,7 @@ neogit.setup({
   sort_branches = "-committerdate",
 
   -- Change the default way of opening neogit
-  kind = "tab",
+  kind = "split",
 
   -- Disable line numbers and relative line numbers
   disable_line_numbers = true,
@@ -238,7 +238,7 @@ neogit.setup({
       ["<enter>"] = "GoToFile",
       ["<c-v>"] = "VSplitOpen",
       ["<c-x>"] = "SplitOpen",
-      ["<c-t>"] = "TabOpen",
+      ["<c-t>"] = "SplitOpen",
       ["{"] = "GoToPreviousHunkHeader",
       ["}"] = "GoToNextHunkHeader",
       ["[c"] = "OpenOrScrollUp",
