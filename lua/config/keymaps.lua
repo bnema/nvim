@@ -4,6 +4,45 @@
 local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 
+local function is_normal_listed_buffer(bufnr)
+  return vim.api.nvim_buf_is_valid(bufnr)
+    and vim.bo[bufnr].buflisted
+    and vim.bo[bufnr].buftype == ''
+end
+
+local function cycle_normal_buffers(direction)
+  local buffers = {}
+
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    if is_normal_listed_buffer(bufnr) then
+      table.insert(buffers, bufnr)
+    end
+  end
+
+  if #buffers == 0 then
+    return
+  end
+
+  local current = vim.api.nvim_get_current_buf()
+  local index = nil
+
+  for i, bufnr in ipairs(buffers) do
+    if bufnr == current then
+      index = i
+      break
+    end
+  end
+
+  local target_index
+  if index == nil then
+    target_index = direction > 0 and 1 or #buffers
+  else
+    target_index = ((index - 1 + direction) % #buffers) + 1
+  end
+
+  vim.cmd('buffer ' .. buffers[target_index])
+end
+
 -- Disable macro recording (q key) - too easy to hit by accident
 map('n', 'q', '<Nop>', opts)
 map('n', 'Q', '<Nop>', opts)
@@ -20,9 +59,9 @@ map('n', '<C-Down>', ':resize -2<CR>', opts)         -- Decrease height
 map('n', '<C-Left>', ':vertical resize -2<CR>', opts) -- Decrease width
 map('n', '<C-Right>', ':vertical resize +2<CR>', opts) -- Increase width
 
--- Tab page navigation - Shift + hl for quick tab switching
-map('n', '<S-h>', ':tabprevious<CR>', opts)  -- Previous tab page
-map('n', '<S-l>', ':tabnext<CR>', opts)      -- Next tab page
+-- Buffer navigation - cycle open buffers while skipping special ones
+map('n', '<S-h>', function() cycle_normal_buffers(-1) end, { noremap = true, silent = true, desc = 'Previous open buffer' })
+map('n', '<S-l>', function() cycle_normal_buffers(1) end, { noremap = true, silent = true, desc = 'Next open buffer' })
 
 -- Buffer management (via mini.bufremove)
 map('n', '<leader>bN', ':enew<CR>', { noremap = true, silent = true, desc = 'New buffer' })
@@ -32,14 +71,15 @@ map('n', '<leader>bw', function() require('mini.bufremove').wipeout(0, false) en
 map('n', '<leader>bW', function() require('mini.bufremove').wipeout(0, true) end, { noremap = true, silent = true, desc = 'Wipeout buffer (force)' })
 
 -- Buffer navigation via leader+b menu
-map('n', '<leader>bn', ':bnext<CR>', { noremap = true, silent = true, desc = 'Next buffer' })
-map('n', '<leader>bb', ':bprevious<CR>', { noremap = true, silent = true, desc = 'Back/previous buffer' })
+map('n', '<leader>bn', function() cycle_normal_buffers(1) end, { noremap = true, silent = true, desc = 'Next open buffer' })
+map('n', '<leader>bb', function() cycle_normal_buffers(-1) end, { noremap = true, silent = true, desc = 'Previous open buffer' })
+map('n', '<leader>bp', function() cycle_normal_buffers(-1) end, { noremap = true, silent = true, desc = 'Previous open buffer' })
 
--- Quick buffer switching by number (1-9, 0 for buffer 10)
+-- Quick buffer switching by buffer number (1-9, 0 for buffer 10)
 for i = 1, 9 do
-  map('n', '<leader>b' .. i, ':buffer ' .. i .. '<CR>', { noremap = true, silent = true, desc = 'Buffer ' .. i })
+  map('n', '<leader>b' .. i, ':buffer ' .. i .. '<CR>', { noremap = true, silent = true, desc = 'Buffer #' .. i })
 end
-map('n', '<leader>b0', ':buffer 10<CR>', { noremap = true, silent = true, desc = 'Buffer 10' })
+map('n', '<leader>b0', ':buffer 10<CR>', { noremap = true, silent = true, desc = 'Buffer #10' })
 
 -- Clear search highlight on Escape
 map('n', '<Esc>', ':nohlsearch<CR>', opts)
@@ -81,16 +121,9 @@ map('n', '<leader>|', ':vsplit<CR>', { noremap = true, silent = true, desc = 'Sp
 map('n', '<leader>-', ':split<CR>', { noremap = true, silent = true, desc = 'Split horizontally' })
 map('n', '<leader>c', ':close<CR>', { noremap = true, silent = true, desc = 'Close window' })
 
--- Tab page management - Create, navigate, and close tabs
-map('n', '<leader>tn', ':tabnew<CR>', { noremap = true, silent = true, desc = 'New tab' })
-map('n', '<leader>tc', ':tabclose<CR>', { noremap = true, silent = true, desc = 'Close tab' })
-map('n', '<leader>th', ':tabprevious<CR>', { noremap = true, silent = true, desc = 'Previous tab' })
-map('n', '<leader>tl', ':tabnext<CR>', { noremap = true, silent = true, desc = 'Next tab' })
-map('n', '<leader>to', ':tabonly<CR>', { noremap = true, silent = true, desc = 'Only this tab' })
-
--- Buffer navigation - Tab/Shift-Tab for ergonomic buffer switching
-map('n', '<Tab>', ':bnext<CR>', { noremap = true, silent = true, desc = 'Next buffer' })
-map('n', '<S-Tab>', ':bprevious<CR>', { noremap = true, silent = true, desc = 'Previous buffer' })
+-- Buffer navigation - Tab/Shift-Tab cycles open buffers
+map('n', '<Tab>', function() cycle_normal_buffers(1) end, { noremap = true, silent = true, desc = 'Next open buffer' })
+map('n', '<S-Tab>', function() cycle_normal_buffers(-1) end, { noremap = true, silent = true, desc = 'Previous open buffer' })
 
 -- Yank operations - Copy special content to clipboard
 -- All yank logic has been moved to config/yank.lua for better organization

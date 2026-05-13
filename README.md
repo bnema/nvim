@@ -29,7 +29,8 @@ nvim
 - **GitHub Copilot** - Native inline completion support
 - **Git Integration** - mini.git + mini.diff for staging, diffing, and navigation
 - **Auto-formatting** - LSP-based formatting on save (Go, Svelte, TypeScript/JavaScript)
-- **Smart Keybinds** - Window navigation, tab management, buffer switching
+- **Smart Keybinds** - Window navigation and buffer switching
+- **Buffer-first workflow** - No tab-page keymaps by default, just buffers and splits
 
 ## Core Keybindings
 
@@ -38,7 +39,8 @@ nvim
 |-----|--------|
 | `<C-hjkl>` | Move between splits |
 | `<S-hl>` | Previous/next buffer |
-| `<Tab>` / `<S-Tab>` | Next/previous tab |
+| `<Tab>` / `<S-Tab>` | Next/previous buffer |
+| `<leader>fb` | Pick an open buffer |
 
 ### LSP
 | Key | Action |
@@ -64,6 +66,8 @@ nvim
 | `<Tab>` | Accept suggestion |
 | `<M-]>` | Next suggestion |
 | `<M-[>` | Previous suggestion |
+
+This config is buffer-first: the top bar shows buffers, and no tab-page keymaps are enabled by default.
 
 Use `:help keymaps.lua` for the complete list or press `<leader>` to see hints with mini.clue.
 

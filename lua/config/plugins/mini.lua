@@ -45,8 +45,10 @@ require('mini.statusline').setup({
   },
 })
 
--- mini.tabline - Buffer tabs at the top
-require('mini.tabline').setup()
+-- mini.tabline - Top buffer bar (hide Vim tab-page section)
+require('mini.tabline').setup({
+  tabpage_section = 'none',
+})
 
 -- mini.notify - Notifications
 require('mini.notify').setup()
