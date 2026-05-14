@@ -24,7 +24,7 @@ require("lazy").setup({
     { import = "plugins" },
   },
   install = {
-    colorscheme = { "despair", "habamax" },
+    colorscheme = { "vesper", "despair", "habamax" },
   },
   checker = {
     enabled = false, -- disable auto-check for updates

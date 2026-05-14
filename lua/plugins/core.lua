@@ -30,6 +30,16 @@ return {
     name = "rose-pine",
     lazy = true,
   },
+  {
+    "datsfilipe/vesper.nvim",
+    lazy = true,
+    opts = {
+      transparent = false,
+    },
+    config = function(_, opts)
+      require("vesper").setup(opts)
+    end,
+  },
 
   -- Plenary - Lua utilities (loaded as dependency)
   {

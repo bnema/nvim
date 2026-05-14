@@ -1,9 +1,10 @@
 -- Theme selection and color overrides
 local M = {}
 
-M.default = 'tokyonight-night'
+M.default = 'vesper'
 
 M.themes = {
+  'vesper',
   'dracula',
   'despair',
   'tokyonight-night',

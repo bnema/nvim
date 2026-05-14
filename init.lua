@@ -13,7 +13,7 @@ require('config.format')
 -- Load lazy.nvim plugin manager
 require('config.lazy')
 
--- Apply the selected colorscheme (defaults to Tokyo Night, falls back if unavailable)
+-- Apply the selected colorscheme (defaults to Vesper, falls back if unavailable)
 require('config.theme').setup()
 
 -- Global keymaps
