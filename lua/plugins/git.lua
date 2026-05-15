@@ -18,6 +18,17 @@ return {
         -- Keep explorer opt-in via keymaps; do not auto-open on directory start.
         replace_netrw = false,
       },
+      picker = {
+        sources = {
+          explorer = {
+            layout = {
+              layout = {
+                position = "right",
+              },
+            },
+          },
+        },
+      },
     },
   },
 
