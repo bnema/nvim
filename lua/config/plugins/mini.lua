@@ -24,13 +24,14 @@ require('mini.statusline').setup({
       local location = MiniStatusline.section_location({ trunc_width = 75 })
       local search = MiniStatusline.section_searchcount({ trunc_width = 75 })
 
-      local copilot_map = {
-        ok = COPILOT_ICON,
-        pending = COPILOT_ICON .. '...',
-        error = COPILOT_ICON .. '!',
-      }
-      local copilot_status = type(_G.get_copilot_status) == 'function' and _G.get_copilot_status() or nil
-      local copilot = copilot_map[copilot_status]
+      local copilot
+      local ok_sidekick, sidekick_status = pcall(require, 'sidekick.status')
+      if ok_sidekick then
+        local status = sidekick_status.get()
+        if status then
+          copilot = status.kind == 'Error' and COPILOT_ICON .. '!' or status.busy and COPILOT_ICON .. '...' or COPILOT_ICON
+        end
+      end
 
       return MiniStatusline.combine_groups({
         { hl = mode_hl, strings = { mode } },

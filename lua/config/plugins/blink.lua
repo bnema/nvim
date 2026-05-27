@@ -6,7 +6,19 @@ local cmp = require('blink.cmp')
 cmp.setup({
   -- Keymap preset: 'default' uses C-y to accept (similar to built-in completion)
   -- Other options: 'super-tab' (Tab to accept), 'enter' (Enter to accept), 'none'
-  keymap = { preset = 'default' },
+  keymap = {
+    preset = 'default',
+    ['<Tab>'] = {
+      'snippet_forward',
+      function()
+        return require('sidekick').nes_jump_or_apply()
+      end,
+      function()
+        return vim.lsp.inline_completion.get()
+      end,
+      'fallback',
+    },
+  },
 
   appearance = {
     -- Use 'mono' for Nerd Font Mono (default) or 'normal' for Nerd Font
