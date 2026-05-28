@@ -94,9 +94,10 @@ cmp.setup({
       }
     },
 
-    -- Ghost text preview
+    -- Disable Blink ghost text so native inline completion/Copilot owns inline previews.
+    -- Accept Blink completion menu items explicitly with <C-y>.
     ghost_text = {
-      enabled = true,
+      enabled = false,
     },
 
     -- Completion menu
