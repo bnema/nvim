@@ -21,6 +21,8 @@ vim.lsp.enable('copilot')
 -- Build LSP capabilities from blink.cmp
 -- blink.cmp is loaded before this file in native-packages.lua
 local capabilities = _G.blink_cmp_capabilities or lsp.protocol.make_client_capabilities()
+local zig_exe_path = vim.fn.exepath('zig')
+local has_zig = zig_exe_path ~= ''
 
 -- LSP attach callback - called when LSP client attaches to buffer
 local function on_attach(client, bufnr)
@@ -67,6 +69,18 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
 -- Note: Go formatting is handled by go.nvim in config/plugins/go.lua
 
+-- Format Zig/ZON files through ZLS. ZLS formatting matches `zig fmt`.
+vim.api.nvim_create_autocmd('BufWritePre', {
+  group = vim.api.nvim_create_augroup('UserZigFormat', { clear = true }),
+  pattern = { '*.zig', '*.zon' },
+  callback = function(args)
+    if #vim.lsp.get_clients({ bufnr = args.buf, name = 'zls' }) == 0 then
+      return
+    end
+    lsp.buf.format({ bufnr = args.buf, async = false })
+  end,
+})
+
 -- Setup Mason - package manager for language servers
 local ok_mason, mason = pcall(require, 'mason')
 if ok_mason then
@@ -74,24 +88,31 @@ if ok_mason then
   -- Setup mason-lspconfig bridge between Mason and lspconfig
   local ok_mlc, mlc = pcall(require, 'mason-lspconfig')
   if ok_mlc then
-    mlc.setup({
-      -- Language servers to automatically install
-      ensure_installed = {
-        -- Core languages
-        'lua_ls',               -- Lua
-        'pyright',              -- Python
-        'ts_ls',                -- TypeScript/JavaScript
-        'clangd',               -- C/C++
-        'gopls',                -- Go
+    -- Language servers to automatically install. Keep Zig optional so machines
+    -- without a Zig toolchain do not install/start ZLS or emit warnings.
+    local ensure_installed = {
+      -- Core languages
+      'lua_ls',               -- Lua
+      'pyright',              -- Python
+      'ts_ls',                -- TypeScript/JavaScript
+      'clangd',               -- C/C++
+      'gopls',                -- Go
 
-        -- Web Development (SvelteKit + Tailwind)
-        'svelte', -- Svelte/SvelteKit
-        'tailwindcss',          -- Tailwind CSS intellisense & completion
-        'html',                 -- HTML
-        'cssls',                -- CSS/SCSS
-        'jsonls',               -- JSON (config files)
-        'eslint',               -- ESLint linting
-      },
+      -- Web Development (SvelteKit + Tailwind)
+      'svelte', -- Svelte/SvelteKit
+      'tailwindcss',          -- Tailwind CSS intellisense & completion
+      'html',                 -- HTML
+      'cssls',                -- CSS/SCSS
+      'jsonls',               -- JSON (config files)
+      'eslint',               -- ESLint linting
+    }
+
+    if has_zig then
+      table.insert(ensure_installed, 'zls')
+    end
+
+    mlc.setup({
+      ensure_installed = ensure_installed,
       handlers = {
         -- Default handler for all servers
         function(server_name)
@@ -102,6 +123,26 @@ if ok_mason then
           require('lspconfig')[server_name].setup({
             on_attach = on_attach,
             capabilities = capabilities,
+          })
+        end,
+        -- Zig language server configuration
+        zls = function()
+          if not has_zig then
+            return
+          end
+          require('lspconfig').zls.setup({
+            on_attach = on_attach,
+            capabilities = capabilities,
+            cmd = { 'zls' },
+            filetypes = { 'zig', 'zir' },
+            root_dir = require('lspconfig').util.root_pattern('zls.json', 'build.zig', '.git'),
+            single_file_support = true,
+            settings = {
+              zls = {
+                zig_exe_path = zig_exe_path,
+                enable_build_on_save = true,
+              },
+            },
           })
         end,
         -- Custom Lua server configuration

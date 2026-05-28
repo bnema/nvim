@@ -29,6 +29,12 @@ return {
     lazy = true,
   },
 
+  -- Zig filetype, syntax, indentation, and compiler support
+  {
+    "ziglang/zig.vim",
+    ft = { "zig", "zon" },
+  },
+
   -- Treesitter - Syntax highlighting and parsing (main branch rewrite)
   {
     "nvim-treesitter/nvim-treesitter",

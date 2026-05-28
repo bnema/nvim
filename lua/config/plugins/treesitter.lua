@@ -8,6 +8,10 @@ local parsers = {
   "markdown", "markdown_inline",
 }
 
+if vim.fn.exepath("zig") ~= "" then
+  table.insert(parsers, "zig")
+end
+
 require("nvim-treesitter").setup()
 require("nvim-treesitter").install(parsers)
 
