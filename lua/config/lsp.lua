@@ -31,12 +31,12 @@ local function on_attach(client, bufnr)
   -- Core LSP navigation keymaps - use native vim.lsp.buf for direct jumps
   -- These jump directly to single results, or show native list for multiple
   vim.keymap.set('n', 'gd', lsp.buf.definition, vim.tbl_extend('force', opts, { desc = 'Go to definition' }))
-  vim.keymap.set('n', 'gD', lsp.buf.declaration, vim.tbl_extend('force', opts, { desc = 'Go to declaration' }))
   vim.keymap.set('n', 'gi', lsp.buf.implementation, vim.tbl_extend('force', opts, { desc = 'Go to implementation' }))
   vim.keymap.set('n', 'gr', lsp.buf.references, vim.tbl_extend('force', opts, { desc = 'Show references' }))
   vim.keymap.set('n', 'gy', lsp.buf.type_definition, vim.tbl_extend('force', opts, { desc = 'Go to type definition' }))
 
   -- LSP information and action keymaps (leader + l prefix)
+  vim.keymap.set('n', '<leader>lD', lsp.buf.declaration, vim.tbl_extend('force', opts, { desc = 'Go to declaration' }))
   vim.keymap.set('n', '<leader>ld', lsp.buf.hover, vim.tbl_extend('force', opts, { desc = 'Hover description' }))
   vim.keymap.set('n', '<leader>lr', lsp.buf.rename, vim.tbl_extend('force', opts, { desc = 'Rename symbol' }))
   vim.keymap.set('n', '<leader>la', lsp.buf.code_action, vim.tbl_extend('force', opts, { desc = 'Code action' }))

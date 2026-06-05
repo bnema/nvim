@@ -165,19 +165,20 @@ map('v', '<leader>y', yank.yank_selection_with_context, { noremap = true, silent
 -- LSP Navigation & Actions:
 --   Core navigation (configured in config/lsp.lua):
 --     gd               - Go to definition (direct jump or quickfix)
---     gD               - Go to declaration (direct jump or quickfix)
+--     gD               - Peek definition in a floating window (lspeek.nvim)
 --     gi               - Go to implementation (direct jump or quickfix)
 --     gr               - Find references (direct jump or quickfix)
 --     gy               - Go to type definition (direct jump or quickfix)
+--     gY               - Peek type definition in a floating window (lspeek.nvim)
 --   LSP actions (configured in config/lsp.lua):
---     <leader>lh       - Show hover documentation
+--     <leader>lD       - Go to declaration
+--     <leader>ld       - Show hover documentation
 --     <leader>lr       - Rename symbol across codebase
 --     <leader>la       - Show code actions (refactoring, fixes)
 --     <leader>lf       - Format current buffer
 --   LSP pickers (configured below):
 --     <leader>ls       - List document symbols (methods/functions in file)
 --     <leader>lS       - List workspace symbols (project-wide search)
---     <leader>ld       - List diagnostics (in mini.lua)
 
 -- NOTE: LSP pickers (<leader>ls, <leader>lS) are now handled by fzf-lua
 -- See lua/plugins/fzf.lua for keybindings

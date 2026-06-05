@@ -45,9 +45,11 @@ nvim
 ### LSP
 | Key | Action |
 |-----|--------|
-| `gd` / `gD` | Go to definition/declaration |
+| `gd` / `gD` | Go to/peek definition |
+| `gy` / `gY` | Go to/peek type definition |
 | `gi` / `gr` | Go to implementation/references |
-| `<leader>lh` | Hover |
+| `<leader>lD` | Go to declaration |
+| `<leader>ld` | Hover |
 | `<leader>la` | Code action |
 
 ### File Operations
