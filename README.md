@@ -6,7 +6,7 @@ A minimal Neovim configuration built on [mini.nvim](https://github.com/echasnovs
 
 ## Requirements
 
-- **Neovim:** 0.12 or later (native inline completion support)
+- **Neovim:** 0.13 or later (native file watcher and inline completion support)
 - **Nerd Font:** Any [Nerd Font](https://www.nerdfonts.com/) (for icons and symbols)
 - **Git:** Required for plugin management
 
@@ -84,6 +84,7 @@ Use `:help keymaps.lua` for the complete list or press `<leader>` to see hints w
 │   ├── keymaps.lua             # Global keybindings
 │   ├── lsp.lua                 # LSP setup
 │   ├── format.lua              # Auto-formatting configuration
+│   ├── autoread.lua            # Auto-reload on external file changes
 │   └── plugins/
 │       ├── mini.lua            # mini.nvim modules config
 │       └── yazi.lua            # File manager integration
@@ -97,6 +98,7 @@ Edit files in `lua/config/` to customize behavior:
 - **native-packages.lua** - Native vim.pack plugin management
 - **lsp.lua** - Language servers, diagnostics, LSP keybindings
 - **format.lua** - Auto-formatting on save configuration
+- **autoread.lua** - Auto-reload buffers changed externally (native Neovim 0.13 watcher)
 - **keymaps.lua** - Global keybindings
 - **plugins/mini.lua** - mini.nvim module configuration
 
