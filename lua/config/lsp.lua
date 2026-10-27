@@ -6,18 +6,6 @@
 
 local lsp = vim.lsp
 
--- ============================================
--- Native GitHub Copilot LSP for Sidekick NES
--- ============================================
--- sidekick.nvim uses the official Copilot LSP for Next Edit Suggestions.
--- The copilot-language-server binary must be installed separately:
---   npm install -g @github/copilot-language-server
--- Authentication: Run :LspCopilotSignIn if needed.
--- Sidekick owns Copilot status handling and NES UI.
-
-vim.lsp.config('copilot', {})
-vim.lsp.enable('copilot')
-
 -- Build LSP capabilities from blink.cmp
 -- blink.cmp is loaded before this file in native-packages.lua
 local capabilities = _G.blink_cmp_capabilities or lsp.protocol.make_client_capabilities()
@@ -41,12 +29,6 @@ local function on_attach(client, bufnr)
   vim.keymap.set('n', '<leader>lr', lsp.buf.rename, vim.tbl_extend('force', opts, { desc = 'Rename symbol' }))
   vim.keymap.set('n', '<leader>la', lsp.buf.code_action, vim.tbl_extend('force', opts, { desc = 'Code action' }))
   vim.keymap.set('n', '<leader>lf', function() lsp.buf.format({ async = true }) end, vim.tbl_extend('force', opts, { desc = 'Format buffer' }))
-
-  -- Enable inline completion (Copilot and other inline completion providers).
-  -- <Tab> handling lives in blink.cmp so Sidekick NES gets first chance.
-  if client.server_capabilities.inlineCompletionProvider then
-    vim.lsp.inline_completion.enable(true, { bufnr = bufnr })
-  end
 
   -- Refresh mini.clue to pick up LSP keymaps
   -- LSP keymaps are buffer-local, so mini.clue needs to re-discover them

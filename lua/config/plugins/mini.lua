@@ -8,8 +8,6 @@
 -- mini.icons - File icons (required by statusline)
 require('mini.icons').setup()
 
-local COPILOT_ICON = '\u{f113}'
-
 -- mini.statusline - Statusline
 require('mini.statusline').setup({
   content = {
@@ -24,18 +22,9 @@ require('mini.statusline').setup({
       local location = MiniStatusline.section_location({ trunc_width = 75 })
       local search = MiniStatusline.section_searchcount({ trunc_width = 75 })
 
-      local copilot
-      local ok_sidekick, sidekick_status = pcall(require, 'sidekick.status')
-      if ok_sidekick then
-        local status = sidekick_status.get()
-        if status then
-          copilot = status.kind == 'Error' and COPILOT_ICON .. '!' or status.busy and COPILOT_ICON .. '...' or COPILOT_ICON
-        end
-      end
-
       return MiniStatusline.combine_groups({
         { hl = mode_hl, strings = { mode } },
-        { hl = 'MiniStatuslineDevinfo', strings = { git, diff, diagnostics, lsp, copilot } },
+        { hl = 'MiniStatuslineDevinfo', strings = { git, diff, diagnostics, lsp } },
         '%<',
         { hl = 'MiniStatuslineFilename', strings = { filename } },
         '%=',

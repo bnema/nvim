@@ -359,10 +359,6 @@ map('n', '<leader>lh', function()
   vim.notify('Gopls parameter hints ' .. status, vim.log.levels.INFO)
 end, { noremap = true, silent = true, desc = 'Toggle parameter hints (Go)' })
 
--- Sidekick / Copilot AI suggestions:
---   <Tab> (normal/insert) - Jump/apply Sidekick NES, then accept inline suggestion in insert mode
---   <leader>aa/as/...     - Sidekick AI CLI controls
-
 -- Text Editing & Manipulation (mini.surround, mini.comment):
 --   sa                 - Add surround (sa + motion + char)
 --   sd                 - Delete surround

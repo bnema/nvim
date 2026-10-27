@@ -36,10 +36,6 @@ function M.apply_overrides()
     vim.api.nvim_set_hl(0, 'NormalNC', { fg = normal.fg, bg = normal.bg })
   end
 
-  -- Inline completion hint visibility (Copilot native LSP)
-  vim.api.nvim_set_hl(0, 'ComplHint', { fg = '#6c7a89', bg = 'NONE' })
-  vim.api.nvim_set_hl(0, 'ComplHintMore', { fg = '#5d6d7e', bg = 'NONE' })
-
   -- CodeDiff line and character highlights
   vim.api.nvim_set_hl(0, 'CodeDiffLineInsert', { bg = M.codediff_highlights.line_insert })
   vim.api.nvim_set_hl(0, 'CodeDiffLineDelete', { bg = M.codediff_highlights.line_delete })

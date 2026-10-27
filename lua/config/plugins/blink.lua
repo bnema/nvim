@@ -8,16 +8,6 @@ cmp.setup({
   -- Other options: 'super-tab' (Tab to accept), 'enter' (Enter to accept), 'none'
   keymap = {
     preset = 'default',
-    ['<Tab>'] = {
-      'snippet_forward',
-      function()
-        return require('sidekick').nes_jump_or_apply()
-      end,
-      function()
-        return vim.lsp.inline_completion.get()
-      end,
-      'fallback',
-    },
   },
 
   appearance = {
@@ -94,7 +84,6 @@ cmp.setup({
       }
     },
 
-    -- Disable Blink ghost text so native inline completion/Copilot owns inline previews.
     -- Accept Blink completion menu items explicitly with <C-y>.
     ghost_text = {
       enabled = false,
