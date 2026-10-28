@@ -2,7 +2,9 @@
 return {
   -- Flash.nvim - Search-based navigation with labels
   {
-    "folke/flash.nvim",
+    -- Neovim 0.13 compatibility pending folke/flash.nvim#492.
+    "onion108/flash.nvim",
+    commit = "25ce9b72a8be5a8458c8983c8af766c8fbbc2012",
     event = "VeryLazy",
     config = function()
       require("config.plugins.flash")
